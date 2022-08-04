@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.StudentManagementMapper">
+<insert id="joinStudent" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+        insert all
+		into mem (mem_id, mem_pw, mem_cmcd, mem_wid_wn)
+		values (#{stuId}, #{stuPw}, '01', 'N')
+		into stu (stu_id, stu_nm, stu_ph_no, stu_email, stu_addr, stu_addr_dtl, stu_post_no, stu_int_fd)
+		values (#{stuId}, #{stuNm}, #{stuPhNo}, #{stuEmail}, #{stuAddr}, #{stuAddrDtl}, #{stuPostNo}, #{stuIntFd})
+		into auth (auth_nm, mem_id)
+		values ('ROLE_STUDENT', #{stuId})
+		select * from dual
+</insert>
+
+<select id="selectSeq" resultType="String">
+	select lpad(memid_seq.nextval, 4, 0) from dual
+</select>
+<select id="viewStudentId" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentVO" resultType="string">
+		select stu_id
+		from stu
+		where stu_nm = #{stuNm}
+		and stu_ph_no = #{stuPhNo}
+</select>
+<select id="studentList" resultType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+	select stu_id, stu_nm, stu_ph_no, stu_int_fd
+	from stu
+</select>
+<select id="selectStudentTotalCnt" resultType="int">
+	select count(*) from stu
+</select>
+
+<select id="studentNameCnt" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentListPageCountVO" resultType="int">
+	select count(*) from stu
+	where stu_nm like '%' ||  #{stuNm} || '%'
+</select>
+
+<select id="studentPhNoCnt" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentListPageCountVO" resultType="int">
+	select count(*) from stu
+	where stu_ph_no like '%' ||  #{stuPhNo} || '%'
+</select>
+
+<select id="selectStudentPage" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentListPageCountVO" resultType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+	 <![CDATA[
+	select  stu_id, stu_nm, stu_ph_no, stu_addr, stu_addr_dtl, stu_post_no, stu_int_fd, stu_email from
+	       (select rownum as myrownum,  stu_id, stu_nm, stu_ph_no, stu_addr, stu_addr_dtl, stu_post_no, stu_int_fd, stu_email from stu
+	          where rownum <= #{pageNum} * #{pageSize})
+	      where myrownum > (#{pageNum} -1) * #{pageSize}
+	      order by stu_id desc
+      ]]> 
+</select>
+<select id="selectOneStudent" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentListPageCountVO" resultType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+	select stu_id, stu_nm, stu_ph_no, stu_email, stu_addr, stu_int_fd, stu_addr_dtl, stu_post_no  
+	from stu where stu_id=#{stuId}
+</select>
+
+<select id="selectNameStudent" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentListPageCountVO" resultType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+	<![CDATA[
+	select  stu_id, stu_nm, stu_ph_no, stu_addr, stu_addr_dtl, stu_post_no, stu_int_fd, stu_email from
+	       (select rownum as myrownum,  stu_id, stu_nm, stu_ph_no, stu_addr, stu_addr_dtl, stu_post_no, stu_int_fd, stu_email from stu
+	          where rownum <= #{pageNum} * #{pageSize}
+	          and stu_nm like '%' ||  #{stuNm} || '%')
+	      where myrownum > (#{pageNum} -1) * #{pageSize}
+	      and stu_nm like '%' ||  #{stuNm} || '%'
+	      order by stu_id desc
+      ]]> 
+</select>
+
+<select id="selectPhNoStudent" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentListPageCountVO" resultType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+	 <![CDATA[
+	select  stu_id, stu_nm, stu_ph_no, stu_addr, stu_addr_dtl, stu_post_no, stu_int_fd, stu_email from
+	       (select rownum as myrownum,  stu_id, stu_nm, stu_ph_no, stu_addr, stu_addr_dtl, stu_post_no, stu_int_fd, stu_email from stu
+	          where rownum <= #{pageNum} * #{pageSize}
+	          and stu_Ph_No like '%' ||  #{stuPhNo} || '%')
+	      where myrownum > (#{pageNum} -1) * #{pageSize}
+	      and stu_Ph_No like '%' ||  #{stuPhNo} || '%'
+	      order by stu_id desc
+	 ]]> 
+</select>
+
+<update id="updateStudentPw" parameterType="kr.or.arthakdang.domain.MemberVO">
+	update mem
+	set mem_pw = #{memPw}
+	where mem_id = #{memId}
+</update>
+
+<update id="updateStudentInfo" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+	update stu
+	set stu_nm = #{stuNm}
+	, stu_ph_no = #{stuPhNo}
+	, stu_addr = #{stuAddr}
+	, stu_addr_dtl = #{stuAddrDtl}
+	, stu_post_no = #{stuPostNo}
+	, stu_email = #{stuEmail}
+	, stu_int_fd = #{stuIntFd} 
+	where stu_id = #{stuId}
+</update>
+
+<update id="deleteStudent" parameterType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+	update mem
+	set mem_wid_wn = 'Y'
+	where mem_id = #{stuId}
+</update>
+<select id="studentInfoCheck" parameterType="String" resultType="String">
+SELECT s.STU_ADDR||s.STU_POST_NO||s.STU_ADDR_DTL||s.STU_INT_FD FROM STU s WHERE s.STU_ID=#{stuId}
+</select>
+
+	<select id="searchEmployee" resultType="String">
+		select emp_Nm from emp
+		where emp_cmcd = '02'
+	</select>
+</mapper>

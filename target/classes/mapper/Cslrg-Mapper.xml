@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.CslrgMapper">
+
+<insert id="insertCslrg" parameterType="CslrgVO">
+	insert into cslrg(cslrg_no, stu_id, cslrg_rsv_dt, cslrg_rsv_tm, csl_fd_cmcd, csl_st_cmcd, cslrg_cnt)
+	values('CSL'|| LPAD(CSLRG_SEQ.nextval,4,'0'), #{stuId}, #{cslrgRsvDt}, #{cslrgRsvTm}, #{cslFdCmcd}, #{cslStCmcd},#{cslrgCnt})
+</insert>
+
+<update id="updateCslrg" parameterType="CslrgVO">
+update cslrg
+set stu_id = #{stuId},
+    emp_id = #{empId},
+    cslrg_rsv_dt = #{cslrgRsvDt},
+    cslrg_rsv_tm = #{cslrgRsvTm},
+    csl_fd_cmcd = #{cslFdCmcd},
+    csl_st_cmcd = #{cslStCmcd},
+    cslrg_cnt = #{cslrgCnt}, 
+    cslrg_nm = #{cslrgNm},
+    cslrg_ph_no = #{cslrgPhNo},
+    cslrg_sub = #{cslrgSub},
+    cslrg_rsn = #{cslrgRsn},
+    csl_private_nm = #{cslPrivateNm}
+where cslrg_no = #{cslrgNo}
+</update>
+
+<update id="updateNewCslrg" parameterType="CslrgVO">
+update cslrg
+set 
+    cslrg_rsv_dt = #{cslrgRsvDt},
+    cslrg_rsv_tm = #{cslrgRsvTm},
+    csl_fd_cmcd = #{cslFdCmcd},
+    csl_st_cmcd = #{cslStCmcd},
+    cslrg_cnt = #{cslrgCnt}, 
+    cslrg_nm = #{cslrgNm},
+    cslrg_ph_no = #{cslrgPhNo},
+    cslrg_sub = #{cslrgSub},
+    csl_private_nm = #{cslPrivateNm}
+where cslrg_no = #{cslrgNo}
+</update>
+
+
+<delete id="deleteCslrg" parameterType="String">
+delete cslrg
+where cslrg_no = #{cslrgNo}
+</delete>
+
+<!-- detail 값 수정  -->
+<select id="selectCslrg"  resultType="CslrgVO" parameterType="String">
+select cslrg_no,
+	   stu_id,
+	   cslrg_nm,
+	   cslrg_ph_no,
+	   cslrg_sub,
+	   cslrg_rsv_dt,
+	   cslrg_rsv_tm,
+	   cslrg_cnt,
+	   csl_private_nm,
+	   emp_id,
+	   cslrg_rsn,
+	   cmcd1.cmcd_vu csl_fd_cmcd, 
+	   cmcd2.cmcd_vu csl_st_cmcd   
+from cslrg 
+inner join cmcd cmcd1 on (cslrg.csl_fd_cmcd = cmcd1.cmcd_nm)
+inner join cmcd cmcd2 on (cslrg.csl_st_cmcd = cmcd2.cmcd_nm)
+where cslrg_no = #{cslrgNo}
+</select>
+
+<select id="CslList"  resultType="CslrgVO">
+select cslrg_no,
+       stu_id,
+       cslrg_rsv_dt,
+       cslrg_rsv_tm,
+       csl_fd_cmcd,
+       csl_st_cmcd,
+       cslrg_cnt,
+       cslrg_rsn
+from cslrg
+order by cslrg_rsv_dt, cslrg_rsv_tm
+</select>
+
+<select id="cslrgList" resultType="CslrgVO" parameterType="String">
+select cslrg_no, 
+	   cslrg_rsv_dt,
+	   cslrg_rsv_tm,
+	   cslrg_cnt, 
+	   cmcd1.cmcd_vu csl_fd_cmcd, 
+	   cmcd2.cmcd_vu csl_st_cmcd,
+	   cslrg_rsn
+from cslrg
+inner join cmcd cmcd1 on (cslrg.csl_fd_cmcd = cmcd1.cmcd_nm)
+inner join cmcd cmcd2 on (cslrg.csl_st_cmcd = cmcd2.cmcd_nm)
+where stu_id = #{stuId}
+order by cslrg_rsv_dt, cslrg_rsv_tm
+</select>
+
+<!-- 페이징  -->
+<select id="countCslrgNm" resultType="int" parameterType="String">
+select count(cslrg_no) 
+from cslrg
+where not csl_fd_cmcd = 'cslField4'
+and stu_id = #{stuId}
+</select>
+
+<select id="getCountCslrgListPage" resultType="cslrgVO" parameterType="CslrgPageCondDTO" >
+<![CDATA[
+select cslrg_no, stu_id, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, csl_fd_cmcd, csl_st_cmcd 
+from (select rownum as myrownum, cslrg_no, stu_id, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, csl_fd_cmcd, csl_st_cmcd 
+      from (select cslrg_no, stu_id, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, cmcd1.cmcd_vu csl_fd_cmcd, cmcd2.cmcd_vu csl_st_cmcd,
+                case when csl_st_cmcd = 'cslProcess1' then '1'
+                     when csl_st_cmcd = 'cslProcess2' then '2'
+                     when csl_st_cmcd = 'cslProcess3' then '3'
+                     when csl_st_cmcd = 'cslProcess4' then '4'
+                end as cslst
+            from cslrg inner join cmcd cmcd1 on (cslrg.csl_fd_cmcd = cmcd1.cmcd_nm)
+                       inner join cmcd cmcd2 on (cslrg.csl_st_cmcd = cmcd2.cmcd_nm)
+            where not  csl_fd_cmcd = 'cslField4'   
+            and stu_id = #{memId}     
+            order by cslst, cslrg_rsv_dt, cslrg_rsv_tm)
+     where rownum <= #{pageNum}* #{pageSize})
+where myrownum > (#{pageNum}-1) * #{pageSize}
+]]> 
+</select>
+
+<select id="sendMsg" parameterType="String" resultType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+SELECT STU_PH_NO
+FROM STU
+WHERE STU_ID = #{stuId}
+</select>
+
+<select id="NewCslTimeList" parameterType="String" resultType="String">
+select cslrg_rsv_tm	   
+from cslrg
+where cslrg_rsv_dt = #{r_date}
+</select>
+
+
+<select id="cslTimeList" parameterType="String" resultType="String">
+select cslrg_rsv_tm	   
+from cslrg
+where cslrg_rsv_dt = #{r_date}
+</select>
+
+<!--상담내역관리 - 상담신청 목록확인  + 페이징-->
+<select id="cslcdList"  resultType="cslrgVO" parameterType="CslrgPageCondDTO" >
+<![CDATA[
+select stu_id, cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, csl_fd_cmcd, csl_st_cmcd 
+from (select rownum as myrownum, stu_id, cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, csl_fd_cmcd, csl_st_cmcd 
+      from (select stu_id, cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, cmcd1.cmcd_vu csl_fd_cmcd, cmcd2.cmcd_vu csl_st_cmcd,
+                case when csl_st_cmcd = 'cslProcess1' then '1'
+                     when csl_st_cmcd = 'cslProcess2' then '2'
+                     when csl_st_cmcd = 'cslProcess3' then '3'
+                     when csl_st_cmcd = 'cslProcess4' then '4'
+                end as cslst
+            from cslrg inner join cmcd cmcd1 on (cslrg.csl_fd_cmcd = cmcd1.cmcd_nm)
+                       inner join cmcd cmcd2 on (cslrg.csl_st_cmcd = cmcd2.cmcd_nm)    
+            where not csl_st_cmcd = 'cslProcess4'                                 
+            order by cslst, cslrg_rsv_dt, cslrg_rsv_tm)
+     where rownum <= #{pageNum}* #{pageSize})
+where myrownum > (#{pageNum}-1) * #{pageSize}
+]]> 
+</select>
+
+
+<!-- 상담내역관리 페이징  -->
+<select id="countCslrdCnt" resultType="int" parameterType="String">
+select count(cslrg_no) 
+from cslrg
+where not csl_st_cmcd = 'cslProcess4'
+</select>
+
+<!--상담내역관리 - 상담신청 현황  -->
+<update id="updateCslrcd" parameterType="CslrgVO">
+update cslrg
+set csl_st_cmcd = 'cslProcess2',
+	emp_id = #{empId}
+where cslrg_no = #{cslrgNo}
+</update>
+
+
+<!-- 상담결과 입력 관련  -->
+<update id="cslrgResultCnt" parameterType="cslrgVO">
+update cslrg
+set 
+cslrg_rsn = #{cslrgRsn},
+csl_st_cmcd = 'cslProcess4'
+where cslrg_no =#{cslrgNo}
+</update>
+
+<!-- 신규상담신청 추가  -->
+<insert id="newCslrgInsert" parameterType="cslrgVO">
+insert 
+into cslrg
+	(cslrg_no,
+	 cslrg_nm,
+	 cslrg_ph_no,
+	 cslrg_sub,
+	 cslrg_rsv_dt,
+	 cslrg_rsv_tm,
+	 csl_fd_cmcd,
+	 cslrg_cnt,
+	 csl_st_cmcd,
+	 csl_private_nm)
+values('CSL'|| LPAD(CSLRG_SEQ.nextval,4,'0'),
+		#{cslrgNm},
+		#{cslrgPhNo},
+		#{cslrgSub},
+		#{cslrgRsvDt},
+		#{cslrgRsvTm},
+		'cslField4',
+		#{cslrgCnt},
+		'cslProcess1',
+		#{cslPrivateNm})
+</insert>
+
+
+<!--상담결과내역관리  -->
+<select id="cslcdSubList"  resultType="CslrgVO">
+<![CDATA[
+select cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, csl_fd_cmcd, stu_id, cslrg_nm, emp_id, cslrg_rsn  
+from (select rownum as myrownum, cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, csl_fd_cmcd, stu_id, cslrg_nm, emp_id, cslrg_rsn  
+      from (select cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, cmcd1.cmcd_vu csl_fd_cmcd, stu_id, cslrg_nm, emp_id, cslrg_rsn,  
+                case when csl_st_cmcd = 'cslProcess1' then '1' 
+                    when csl_st_cmcd = 'cslProcess2' then '2' 
+                    when csl_st_cmcd = 'cslProcess3' then '3' 
+                    when csl_st_cmcd = 'cslProcess4' then '4' 
+                end as cslst 
+            from cslrg inner join cmcd cmcd1 on (cslrg.csl_fd_cmcd = cmcd1.cmcd_nm) 
+            where csl_st_cmcd = 'cslProcess4'
+            order by cslrg_rsv_dt, cslrg_rsv_tm)
+       where rownum <= #{pageNum}* #{pageSize})
+	where myrownum > (#{pageNum}-1) * #{pageSize}
+]]> 
+</select>
+
+<select id="countSubList" resultType="int" parameterType="String">
+select count(cslrg_no) 
+from cslrg
+where CSL_ST_CMCD = 'cslProcess4'
+</select>
+
+
+
+
+<select id="newCslrgList" resultType="cslrgVO" parameterType="CslrgPageCondDTO">
+<![CDATA[
+select cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, csl_fd_cmcd, csl_st_cmcd, cslrg_nm 
+from (select rownum as myrownum, cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, csl_fd_cmcd, csl_st_cmcd, cslrg_nm 
+      from (select cslrg_no, cslrg_rsv_dt, cslrg_rsv_tm, cslrg_cnt, cmcd1.cmcd_vu csl_fd_cmcd, cmcd2.cmcd_vu csl_st_cmcd, cslrg_nm, 
+                case when csl_st_cmcd = 'cslProcess1' then '1'
+                     when csl_st_cmcd = 'cslProcess2' then '2'
+                     when csl_st_cmcd = 'cslProcess3' then '3'
+                     when csl_st_cmcd = 'cslProcess4' then '4'
+                end as cslst
+            from cslrg inner join cmcd cmcd1 on (cslrg.csl_fd_cmcd = cmcd1.cmcd_nm)
+                       inner join cmcd cmcd2 on (cslrg.csl_st_cmcd = cmcd2.cmcd_nm)
+            where csl_fd_cmcd = 'cslField4'
+            order by cslst, cslrg_rsv_dt, cslrg_rsv_tm)
+     where rownum <= #{pageNum}* #{pageSize})
+where myrownum > (#{pageNum}-1) * #{pageSize}
+]]> 
+</select>
+
+
+<select id="countNewCslrgNm" resultType="int" parameterType="String">
+select count(cslrg_no) 
+from cslrg
+where CSL_FD_CMCD = 'cslField4'
+</select>
+
+
+
+<delete id="deleteNewCslrg" parameterType="String">
+delete cslrg
+where csl_fd_cmcd = 'cslField4'
+and cslrg_no = #{cslrgNo}
+</delete>
+
+
+</mapper>

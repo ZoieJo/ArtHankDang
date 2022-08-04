@@ -1,0 +1,50 @@
+@charset "UTF-8";
+/************* Common *************/
+@font-face {
+    font-family: 'santokki';
+    src: url('./HSSantokki-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: '국립박물관문화재단클래식B';
+    src: url('./국립박물관문화재단클래식B.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: '국립박물관문화재단클래식M';
+    src: url('./국립박물관문화재단클래식M.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: '국립박물관문화재단클래식L';
+    src: url('./국립박물관문화재단클래식L.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'ng';
+    src: url('./NanumGothic.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'ngB';
+    src: url('./NanumGothicBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'ngEB';
+    src: url('./NanumGothicExtraBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'ngL';
+    src: url('./NanumGothicLight.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}

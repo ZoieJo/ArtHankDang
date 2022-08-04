@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.LectureEvaluationMapper">
+	<select id="myLectureList" parameterType="String" resultType="kr.or.arthakdang.lectureevaluation.domain.LectureEvaluationVO">
+        select s1.curs_no, s1.stu_id, s1.su_cmcd, c1.curs_su_pri, c1.curs_su_num
+        , c1.curs_nm, c1.curs_stt_dt, c1.curs_end_dt, c1.sub_no, s2.sub_nm, c1.faci_nm
+        , e1.emp_nm, c3.curseva_wid_wn
+        from su s1
+        left outer join curs c1
+        on c1.curs_no = s1.curs_no
+        left outer join sub s2
+        on c1.sub_no = s2.sub_no
+        left outer join curspn c2
+        on c1.curspn_no = c2.curspn_no
+        left outer join curseva c3
+        on c1.curs_no = c3.curs_no
+        left outer join emp e1
+        on c2.tcr_id = e1.emp_id
+        where s1.stu_id = #{stuId}
+        group by s1.curs_no, s1.stu_id, s1.su_cmcd, c1.curs_su_pri, c1.curs_su_num
+        , c1.curs_nm, c1.curs_stt_dt, c1.curs_end_dt, c1.sub_no, s2.sub_nm, c1.faci_nm
+        , e1.emp_nm, c3.curseva_wid_wn
+	</select>
+	
+	<select id="myLecture" parameterType="kr.or.arthakdang.lectureevaluation.domain.LectureEvaluationVO" resultType="kr.or.arthakdang.lectureevaluation.domain.LectureEvaluationVO">
+		select s1.curs_no, s1.stu_id, s1.su_cmcd, c1.curs_su_pri, c1.curs_su_num
+        , c1.curs_nm, c1.curs_stt_dt, c1.curs_end_dt, c1.sub_no, s2.sub_nm, c1.faci_nm
+        , e1.emp_nm
+        from su s1
+        left outer join curs c1
+        on c1.curs_no = s1.curs_no
+        left outer join sub s2
+        on c1.sub_no = s2.sub_no
+        left outer join curspn c2
+        on c1.curspn_no = c2.curspn_no
+        left outer join curseva c3
+        on c1.curs_no = c3.curs_no
+        left outer join emp e1
+        on c2.tcr_id = e1.emp_id
+        where s1.stu_id = #{stuId}
+        and c1.curs_no = #{cursNo}
+        group by s1.curs_no, s1.stu_id, s1.su_cmcd, c1.curs_su_pri, c1.curs_su_num
+        , c1.curs_nm, c1.curs_stt_dt, c1.curs_end_dt, c1.sub_no, s2.sub_nm, c1.faci_nm
+        , e1.emp_nm
+	</select>
+	
+	<insert id="lectureEvaluation" parameterType="kr.or.arthakdang.lectureevaluation.domain.LectureEvaluationVO">
+		insert into curseva(curs_no, stu_id, curseva_dt, curseva_scr, curseva_cnt, curseva_wid_wn)
+        values (#{cursNo}, #{stuId}, sysdate, #{cursevaScr}, #{cursevaCnt}, 'O')
+	</insert>
+	
+	<select id="evaluationCheck" parameterType="kr.or.arthakdang.lectureevaluation.domain.LectureEvaluationVO" resultType="int">
+		select count(*)
+        from curseva
+        where stu_id = #{stuId}
+        and curs_no = #{cursNo}
+	</select>
+	
+	
+	<update id="deleteEvalulation" parameterType="kr.or.arthakdang.lectureevaluation.domain.LectureEvaluationVO">
+		update curseva
+		set curseva_wid_wn = 'Y'
+		where stu_id = #{stuId}
+		and curs_no = #{cursNo}
+	</update>
+</mapper>

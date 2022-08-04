@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+ "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.MessageMapper">
+
+	<resultMap id="lectureMap" type="kr.or.arthakdang.message.domain.LectureVO">
+		<result column="curs_no" property="cursNo" />
+		<result column="curs_nm" property="cursNm" />
+		<collection property="stuVO" javaType="java.util.ArrayList" resultMap="stuMap" />
+	</resultMap>
+	
+	<resultMap id="stuMap" type="kr.or.arthakdang.message.domain.StuVO">
+		<result column="stu_id" property="stuId" />
+		<result column="stu_nm" property="stuNm" />
+		<result column="stu_ph_no" property="stuPhNo" />
+	</resultMap>
+
+	<!-- 보낸 메시지(MMS) BD에 기록 -->
+	<insert id="insertMsg" parameterType="messageDTO">
+		INSERT INTO MSG (
+		    msg_no,
+		    msg_cmcd,
+		    msg_cnt,
+		    msg_rc,
+		    msg_snt_dt,
+		    msg_del_wn,
+		    msg_sd
+		) VALUES (
+		    MSG_SEQ.nextval,
+		    #{msgCmcd},
+		    #{msgCnt},
+		    #{msgRc},
+		    SYSDATE,
+		    'N',
+		    #{msgSd}
+		)
+	</insert>
+	
+	<!-- BD에 기록된 메시지 목록 가져오기 -->
+	<select id="selectMsg" parameterType="pageDTO" resultType="messageDTO">
+		Select B.* 
+			from
+			(
+			SELECT ROWNUM as RNUM, A.* 
+			from 
+				(
+				SELECT MSG_NO, MSG_CMCD, MSG_CNT, MSG_RC, MSG_SNT_DT 
+				FROM MSG 
+				WHERE MSG_DEL_WN = 'N'
+		        AND MSG_SD = #{msgSd}
+			   	<!-- 받는이로 검색 -->
+				<if test='type=="R" and keyword!=null '>
+				<![CDATA[
+					AND MSG_RC LIKE '%' ||  #{keyword} || '%'
+				]]>
+				</if>
+			   	<!-- 내용으로 검색 -->
+				<if test='type=="C" and keyword!=null '>
+	   			<![CDATA[
+					AND MSG_CNT LIKE '%' ||  #{keyword} || '%'
+				]]>
+				</if>
+				ORDER BY MSG_SNT_DT DESC
+				) A
+			) B
+		WHERE RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<!-- 상세히 보기 -->
+	<select id="detailMsg" parameterType="String" resultType="messageDTO">
+		SELECT
+		    m.MSG_NO,
+		    m.MSG_CMCD,
+		    m.MSG_CNT,
+		    m.MSG_RC,
+		    m.MSG_SD,
+		    m.MSG_SNT_DT
+		FROM MSG m join emp e on(m.MSG_SD = e.emp_id)
+		WHERE MSG_NO = #{msgNo}
+	</select>
+	
+    
+    <!-- 전체 행 개수 구하기 -->
+    <select id="total" parameterType="pageDTO" resultType="int">
+		SELECT COUNT(*) 
+		FROM MSG
+		WHERE MSG_DEL_WN = 'N'
+        AND MSG_SD = #{msgSd}
+	   	<!-- 받는이로 검색 -->
+		<if test='type=="R" and keyword!=null'>
+		<![CDATA[
+			AND MSG_RC LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>
+	   	<!-- 내용으로 검색 -->
+		<if test='type=="C" and keyword!=null'>
+  			<![CDATA[
+			AND MSG_CNT LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>        
+    </select>
+    
+    <!-- 삭제 -->
+    <update id="deleteMsg" parameterType="String">
+		UPDATE MSG
+		SET MSG_DEL_WN = 'Y'
+		WHERE MSG_NO = #{msgNo}
+    </update>
+    
+    <!-- 학생 리스트 구하기 : 현재 진행중인 강의만 넣기 -->
+    <select id="selectStuList" parameterType="String" resultMap="lectureMap">
+		select c1.curs_no, c1.curs_nm, s2.stu_id, s2.stu_nm, s2.stu_ph_no
+		from curs c1
+		left outer join su s1
+		on c1.curs_no = s1.curs_no
+		left outer join stu s2
+		on s1.stu_id = s2.stu_id
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		where c1.curs_end_dt >= sysdate
+		<if test='tcrId!=null'>
+  		<![CDATA[
+			and c2.tcr_id = #{tcrId}
+		]]>
+		</if>		
+		order by c1.curs_no
+    </select>
+    
+</mapper>

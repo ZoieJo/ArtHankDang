@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.FreeboardMapper">
+	
+	<insert id="insertFreeboard" parameterType="freeboardVO">
+		insert into bd(BD_NO, BD_CMCD, BD_TL, BD_CNT, BD_WTR,BD_WT_DT)
+		values (('fbd' || LPAD(seq_bd.nextval, 5, '0')),'01',#{bdTL},#{bdCNT},#{bdWTR},SYSDATE)	
+	</insert>
+	
+	<update id="updateFreeboard" parameterType="freeboardVO">
+		update bd set
+			   BD_TL = #{bdTL},
+			   BD_CNT = #{bdCNT},
+			   BD_MD_DT = sysdate
+<!-- 			   BD_VIEWS = , -->
+<!-- 			   LIKES = , -->
+			   where BD_NO = #{bdNo} 
+	</update>
+	
+<!-- 	parameterType = > 넣어주는 거 / resultType => 내보내는 거 -->
+	<update id="deleteFreeboard" parameterType="String">
+		update bd set bd_del = 'Y' where BD_NO = #{bdNo} 
+	</update>
+	
+	
+<!-- 	보드 리스트 전체 갯수 / 페이징할 때 쓸 쿼리문-->
+	<select id="selectBoardListCnt" resultType="int">
+		select count(*) from bd where BD_NO like 'fbd%' AND BD_DEL = 'N'
+	</select>
+	
+<!-- 	보드 리스트 검색해서 하나만 출력 -->
+	<select id="selectBoard" parameterType="String" resultType="freeboardVO">
+		select * from v_board inner join v_mem_nm on (v_board.bd_wtr = v_mem_nm.mem_id) where bd_no = #{bdNo} AND BD_DEL = 'N'
+	</select>
+		
+<!-- 		보드 리스트 전체 출력 -->
+	<select id="selectBoardList" resultType="freeboardVO">
+	select *
+	from v_board inner join v_mem_nm on (v_board.bd_wtr = v_mem_nm.mem_id)
+	where BD_NO like 'fbd%' AND BD_DEL = 'N'
+	order by bd_no desc
+<!-- 	select * from v_board order by bd_no desc -->
+	</select>
+		
+	<update id="countView" parameterType="String"> 
+	    UPDATE
+	    bd
+	    SET
+	    BD_VIEWS = BD_VIEWS + 1
+	    WHERE
+	    BD_NO = #{bdNo}
+	</update>
+	
+<!-- 	페이징할 때 !!! -->
+	<select id="selectBoardPage" parameterType="pageCondDTO" resultType="freeboardVO">
+	<![CDATA[
+		select 
+		BD_NO, BD_TL, BD_WTR, BD_CNT, BD_WT_DT, BD_LIKES, BD_VIEWS, MEM_NM 
+		from 
+       	(select 
+       	rownum as myrownum, BD_NO, BD_TL, BD_WTR, BD_VIEWS, BD_LIKES, BD_CNT, BD_WT_DT, MEM_NM  
+       	from 
+       	(select * from v_board 
+  		inner join v_mem_nm on (v_board.bd_wtr = v_mem_nm.mem_id) 
+  		where bd_del='N' order by bd_no desc) 
+  		where BD_NO like 'fbd%'
+  		and rownum <= #{pageNum} * #{pageSize})
+  		where myrownum > (#{pageNum} -1) * #{pageSize}
+    ]]>  
+	</select>
+	
+	
+</mapper>
+

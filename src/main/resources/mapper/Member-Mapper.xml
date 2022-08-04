@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.MemberMapper">
+
+	<resultMap type="memberVO" id="memberMap">
+		<id property="memId" column="mem_id" />
+		<result property="memId" column="mem_id" />
+		<result property="memPw" column="mem_pw" />
+		<result property="memCmcd" column="mem_cmcd" />
+		<collection property="authList" resultMap="authMap" />
+	</resultMap>
+
+	<resultMap type="authVO" id="authMap">
+		<result property="memId" column="mem_id" />
+		<result property="authNm" column="auth_nm" />
+		<result property="authCreDt" column="auth_cre_dt" />
+	</resultMap>
+
+	<select id="read" resultMap="memberMap">
+		select
+		mem.mem_id, mem_pw, mem_cmcd,
+		auth_nm
+		from mem left outer join auth on mem.mem_id = auth.mem_id
+		where
+		mem.mem_id = #{memId} and mem_wid_wn='N'
+	</select>
+	<update id="updateMemPw" parameterType="memberVO">
+		update mem
+		set
+		mem_pw=#{memPw}
+		where mem_id=#{memId}
+	</update>
+	<update id="withdraw" parameterType="String">
+		update mem
+		set mem_wid_wn='Y'
+		where mem_id=#{memId}
+	</update>
+
+	<select id="selectAllMember" resultType="memberVO">
+		select * from mem
+	</select>
+</mapper>

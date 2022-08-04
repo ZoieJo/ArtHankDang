@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		
+	<!-- bean 객체 등록 -->
+<!-- 	<beans:bean id="customPasswordEncoder" class="kr.or.arthakdang.security.service.CustomPasswordEncoder"/> -->
+	<beans:bean id="bCryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+	<beans:bean id="customUserDetailsService" class="kr.or.arthakdang.security.service.CustomUserDetailsService"/>
+	<beans:bean id="customAccessDeniedHandler"  class="kr.or.arthakdang.handler.CustomAccessDeniedHandler"/>
+	
+	<!-- web 보안 설정 -->
+	<http auto-config="true" use-expressions="true">
+	<!-- hasRole과 같은 표현식을 사용하려면 spEL을 사용하는 use-expressions를 true로 설정해야 한다. -->
+	
+		<headers>
+			<frame-options policy="SAMEORIGIN"/>
+		</headers>
+		<!-- 헤더에 프레임 옵션을 same origin으로 설정함, 동일한 오리진에서는 iframe을 사용할 수 있음 -->
+		<intercept-url pattern="/test/**" access="hasAnyRole('TEACHER')"/>
+		<intercept-url pattern="/student/**" access="hasAnyRole('EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/stdSignup/**" access="hasRole('STUDENT')"/>
+		<intercept-url pattern="/empSignup/**" access="hasRole('EMPLOYEE')"/>
+		<intercept-url pattern="/note/**" access="hasAnyRole('EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/msg/teacher/**"  access="hasRole('TEACHER')"/>
+		<intercept-url pattern="/msg/employee/**"  access="hasRole('EMPLOYEE')"/>
+		<intercept-url pattern="/crelecture/teacher/**" access="hasRole('TEACHER')"/>
+		<intercept-url pattern="/crelecture/employee/**" access="hasRole('EMPLOYEE')"/>
+		<intercept-url pattern="/freeboard/**" access="hasAnyRole('STUDENT','EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/calendar/**" access="hasAnyRole('STUDENT','EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/mypage/**" access="hasAnyRole('STUDENT','EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/aprl/**" access="hasAnyRole('EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/cslrg/**" access="hasAnyRole('STUDENT', 'EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/cslrcd/**" access="hasAnyRole('EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/lecture/**" access="hasAnyRole('STUDENT', 'EMPLOYEE', 'TEACHER')"/>
+		<intercept-url pattern="/subject/**" access="hasAnyRole('TEACHER', 'EMPLOYEE')"/>
+		<intercept-url pattern="/fac/**" access="hasAnyRole('TEACHER', 'EMPLOYEE', 'STUDENT')"/>
+		<intercept-url pattern="/**" access="permitAll"/>
+		<intercept-url pattern="/newCslrg/**" access="permitAll"/>
+		
+		<!-- 권한이 없을 때 에러페이지 발생 -->
+		<access-denied-handler ref="customAccessDeniedHandler"/>
+		
+		<!-- 로그인 및 로그아웃으로 권한 확인 -->
+		<form-login login-page="/login" />
+		<!-- invalidate-session을 true로 설정하면, 로그아웃을 했을 때 세션을 종료시키도록 함, 기본값이 true -->
+		<logout invalidate-session="true" logout-url="/logout" delete-cookies="JSESSIONID, remember-me" logout-success-url="/"/> 
+		
+		
+		<!-- csrf 작동 설정 -->
+		<csrf disabled="false" />
+		
+		<!-- 세션 개수 및 에러 발생 유무 설정 -->
+		<session-management>
+			<concurrency-control max-sessions="1" error-if-maximum-exceeded="false" />
+		</session-management>
+		
+		<!-- 리멤버미의 ref 및 유지기간 -->
+		<remember-me data-source-ref="dataSource" token-validity-seconds="259200"/>	
+	</http>
+	
+	<!-- 인증 관리자 설정 -->
+	<authentication-manager erase-credentials="false">
+	<!-- login 후에도 credentials 정보에 접근하기위해 false 처리함 -->
+		<authentication-provider user-service-ref="customUserDetailsService">
+	<password-encoder ref="bCryptPasswordEncoder"/>
+<!-- 		<password-encoder ref="customPasswordEncoder"/> -->
+		</authentication-provider>
+	</authentication-manager>
+	
+</beans:beans>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.FindAccountMapper">
+	<select id="FindAccountByIdPh" parameterType="findAccountDTO" resultType="String">
+		<if test='memCmcd.equals("01")'>
+			select mem.mem_id 
+			from stu 
+				inner join mem 
+				on mem.mem_id=stu.stu_id 
+			where mem.mem_id=#{memId} and stu.stu_ph_no=#{memPh} and mem.mem_wid_wn='N'
+		</if>
+		<if test='memCmcd.equals("02")'>
+			select mem.mem_id 
+			from emp 
+				inner join mem 
+				on mem.mem_id=emp.emp_id 
+			where mem.mem_id=#{memId} and emp.emp_ph_no=#{memPh} and mem.mem_wid_wn='N'
+		</if>
+	</select>
+
+	<select id="FindIdByPh" parameterType="findAccountDTO" resultType="String">
+	<if test='memCmcd.equals("01")'>
+			select mem.mem_id 
+			from stu 
+				inner join mem 
+				on mem.mem_id=stu.stu_id 
+			where stu.stu_ph_no=#{memPh} and mem.mem_wid_wn='N'
+		</if>
+		<if test='memCmcd.equals("02")'>
+			select mem.mem_id 
+			from emp 
+				inner join mem 
+				on mem.mem_id=emp.emp_id 
+			where emp.emp_ph_no=#{memPh} and mem.mem_wid_wn='N'
+		</if>
+	</select>
+</mapper>

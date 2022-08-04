@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.AttendanceMapper">
+
+<resultMap type="attendanceDTO" id="atdDto">
+<result property="atdDt" column="atd_dt"/>
+<result property="cursNo" column="curs_no"/>
+<result property="stuId" column="stu_id"/>
+<result property="atdInTm" column="atd_in_tm"/>
+<result property="atdOutTm" column="atd_out_tm"/>
+<result property="atdCmcd" column="atd_cmcd"/>
+</resultMap>
+
+<resultMap type="studentAttendanceDTO" id="stuAtdDto">
+<result property="stuId" column="stu_id"/>
+<collection property="attendanceList" resultMap="atdDto"/>
+</resultMap>
+
+<resultMap type="classAttendanceDTO" id="curAtdDto">
+<result property="cursNo" column="curs_no"/>
+<collection property="attendanceList" resultMap="atdDto"/>
+</resultMap>
+
+<insert id="insertAbsent" parameterType="attendanceDTO">
+INSERT INTO ATD
+	(ATD_DT, 
+	CURS_NO, 
+	STU_ID, 
+	ATD_CMCD)
+VALUES 
+	(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 
+	#{cursNo},
+	#{stuId}, 
+	'ATD00')
+</insert>
+
+<update id="updateCheckIn" parameterType="attendanceDTO">
+UPDATE ATD 
+SET ATD_IN_TM = SYSDATE, 
+	ATD_CMCD = 'ATD01'
+WHERE CURS_NO = #{cursNo}
+	AND ATD_DT = (TO_CHAR(SYSDATE, 'YYYY-MM-DD')) 
+	AND STU_ID = #{stuId}
+</update>
+
+<update id="updateLate" parameterType="attendanceDTO">
+UPDATE ATD 
+SET ATD_IN_TM = SYSDATE, 
+	ATD_CMCD = 'ATD02'
+WHERE CURS_NO = #{cursNo}
+	AND ATD_DT = (TO_CHAR(SYSDATE, 'YYYY-MM-DD')) 
+	AND STU_ID = #{stuId}
+</update>
+
+<update id="updateEarlyDepart" parameterType="attendanceDTO">
+UPDATE ATD 
+SET ATD_OUT_TM = SYSDATE, 
+	ATD_CMCD = 'ATD03'
+WHERE CURS_NO = #{cursNo}
+	AND ATD_DT = (TO_CHAR(SYSDATE, 'YYYY-MM-DD')) 
+	AND STU_ID = #{stuId}
+</update>
+
+<update id="updateCheckOut" parameterType="attendanceDTO">
+UPDATE ATD 
+SET ATD_OUT_TM = SYSDATE 
+WHERE CURS_NO = #{cursNo}
+	AND ATD_DT = (TO_CHAR(SYSDATE, 'YYYY-MM-DD')) 
+	AND STU_ID = #{stuId}
+</update>
+
+<insert id="insertAttendance" parameterType="attendanceDTO">
+INSERT INTO ATD(
+	ATD_DT, 
+	ATD_IN_TM, 
+	ATD_OUT_TM, 
+	CURS_NO, 
+	ATD_CMCD, 
+	STU_ID
+) VALUES (
+	#{atdDt},
+	#{atdInTm},
+	#{atdOutTm},
+	#{cursNo},
+	#{atdCmcd},
+	#{stuId}
+)
+</insert>
+
+<update id="updateAttendance" parameterType="attendanceDTO">
+UPDATE ATD 
+SET ATD_IN_TM = #{atdInTm}, 
+	ATD_OUT_TM = #{atdOutTm}, 
+	ATD_CMCD = #{atdCmcd} 
+WHERE CURS_NO = #{cursNo}
+	AND ATD_DT = #{atdDt}
+	AND STU_ID = #{stuId}
+</update>
+
+<delete id="deleteAttendance" parameterType="attendanceDTO">
+DELETE FROM ATD
+WHERE CURS_NO = #{cursNo}
+	AND ATD_DT = #{atdDt}
+	AND STU_ID = #{stuId}
+</delete>
+
+<select id="selectOneAttendance" parameterType="attendanceDTO" resultType="attendanceDTO">
+SELECT ATD_DT, 
+	ATD_IN_TM, 
+	ATD_OUT_TM, 
+	CURS_NO, 
+	ATD_CMCD, 
+	STU_ID 
+FROM ATD
+WHERE CURS_NO = #{cursNo}
+	AND ATD_DT = #{atdDt}
+	AND STU_ID = #{stuId}
+</select>
+
+<select id="selectAttendanceListByStudentAndClass" parameterType="attendanceDTO" resultType="attendanceDTO">
+SELECT ATD_DT, 
+	ATD_IN_TM, 
+	ATD_OUT_TM, 
+	CURS_NO, 
+	ATD_CMCD, 
+	STU_ID 
+FROM ATD
+WHERE 
+	<if test="stuId != null">
+	STU_ID = #{stuId} 
+	</if>
+	<if test="cursNo != null and stuId != null">
+	AND 
+	</if>
+	<if test="cursNo != null">
+	CURS_NO = #{cursNo} 
+	</if>
+</select>
+<select id="selectAllStudentsAttendanceListByClass" resultMap="stuAtdDto">
+SELECT ATD_DT, 
+	ATD_IN_TM, 
+	ATD_OUT_TM, 
+	CURS_NO, 
+	ATD_CMCD, 
+	STU_ID 
+FROM ATD
+WHERE CURS_NO=#{cursNo}
+</select>
+
+<select id="selectAttendanceListByClassAndDate" resultMap="atdDto">
+SELECT ATD_DT, 
+	ATD_IN_TM, 
+	ATD_OUT_TM, 
+	CURS_NO, 
+	ATD_CMCD, 
+	STU_ID 
+FROM ATD
+WHERE CURS_NO=#{cursNo} AND ATD_DT=#{atdDt}
+</select>
+
+<select id="selectAllClassAttendanceListOfStudent" resultMap="curAtdDto">
+SELECT ATD_DT, 
+	ATD_IN_TM, 
+	ATD_OUT_TM, 
+	CURS_NO, 
+	ATD_CMCD, 
+	STU_ID 
+FROM ATD
+WHERE STU_ID=#{stuId}
+</select>
+<select id="selectCountCheckinByStatus" resultType="int" parameterType="attendanceDTO">
+SELECT COUNT(ATD_DT) 
+FROM ATD 
+WHERE STU_ID=#{stuId}
+	AND CURS_NO=#{cursNo}
+	AND ATD_CMCD=#{atdCmcd}
+</select>
+<select id="selectTotalTimesTakenByStudent" parameterType="attendanceDTO" resultType="double">
+SELECT TRUNC(NVL((sum(A.sum)), 0), 2)
+FROM (SELECT SUM(ATD_OUT_TM - ATD_IN_TM)*24 AS sum, 
+			ATD_DT 
+		FROM ATD 
+		WHERE STU_ID=#{stuId} 
+			AND CURS_NO=#{cursNo}
+			AND ( 1=2 
+				OR ATD_CMCD='ATD01'
+				OR ATD_CMCD='ATD02'
+				OR ATD_CMCD='ATD03'
+				OR ATD_CMCD='ATD06'
+				)
+		GROUP BY STU_ID, 
+				CURS_NO, 
+				ATD_DT) A
+</select>
+<select id="selectAllStudentsAtdInfoListByClass" parameterType="String" resultType="attendanceInfoDTO">
+
+SELECT a.STU_ID, a.CURS_NO, 
+		(SELECT c.CURS_NM FROM CURS c WHERE c.CURS_NO=a.CURS_NO) AS curs_nm, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD01') AS checkin_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD00') AS absent_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD02') AS late_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD03') AS early_depart_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD04') AS illness_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD06') AS late_and_early_depart_day,
+		NVL(b.sum, 0) AS totalTakenTime 
+FROM ATD a LEFT OUTER JOIN (SELECT SUM(NVL(ATD_OUT_TM - ATD_IN_TM, 0))*24 AS sum, STU_ID, CURS_NO FROM ATD WHERE ( 1=2 
+				OR ATD_CMCD='ATD01'
+				OR ATD_CMCD='ATD02'
+				OR ATD_CMCD='ATD03'
+				OR ATD_CMCD='ATD06'
+				)GROUP BY STU_ID, CURS_NO) b
+ON b.STU_ID=a.STU_ID AND a.CURS_NO=b.CURS_NO 
+WHERE a.CURS_NO=#{cursNo} 
+GROUP BY a.STU_ID, a.CURS_NO, b.sum
+
+</select>
+<select id="selectClassAtdInfoListByStudent" parameterType="String" resultType="attendanceInfoDTO">
+SELECT a.STU_ID, a.CURS_NO,
+		(SELECT c.CURS_NM FROM CURS c WHERE c.CURS_NO=a.CURS_NO) AS curs_nm, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD01') AS checkin_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD00') AS absent_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD02') AS late_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD03') AS early_depart_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD04') AS illness_day, 
+		(SELECT COUNT(atd_dt) FROM ATD WHERE STU_ID=a.STU_ID AND CURS_NO=a.CURS_NO AND ATD_CMCD='ATD06') AS late_and_early_depart_day,
+		NVL(b.sum, 0) AS totalTakenTime 
+FROM ATD a LEFT OUTER JOIN (SELECT SUM(NVL(ATD_OUT_TM - ATD_IN_TM, 0))*24 AS sum, STU_ID, CURS_NO FROM ATD WHERE ( 1=2 
+				OR ATD_CMCD='ATD01'
+				OR ATD_CMCD='ATD02'
+				OR ATD_CMCD='ATD03'
+				OR ATD_CMCD='ATD06'
+				)GROUP BY STU_ID, CURS_NO) b
+ON b.STU_ID=a.STU_ID AND a.CURS_NO=b.CURS_NO 
+WHERE a.STU_ID=#{stuId}
+GROUP BY a.STU_ID, a.CURS_NO, b.sum
+</select>
+</mapper>

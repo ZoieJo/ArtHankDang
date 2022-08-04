@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.FacilityReservMapper">
+	
+	<insert id="insertFacReserv" parameterType="facilityReservVO">
+        insert into FACIRSV 
+		values(
+        #{facirsvTm},
+        #{facirsvDt},
+        #{faciNo}, 
+        ('fr' || LPAD(seq_bd.nextval, 5, '0')), 
+        #{memId}
+        )
+	</insert>
+<!-- 
+	<update id="updateFacReserv" parameterType="facilityReservVO">
+		update FACIRSV set
+	   	FACIRSV_TM = #{facilrsvTm},
+	   	FACIRSV_DT = #{facirsvDt},
+	   	MEM_ID = #{memId}
+	   	where FACIRSV_NO = {facirsvNo} 
+	</update>
+ -->
+ 
+	<delete id="deleteFacReserv" parameterType="facilityReservVO">
+		delete FACIRSV
+		where FACIRSV_NO = #{facirsvNo} and MEM_ID = #{memId}
+	</delete>
+
+		 <!-- 전체 리스트 뿌릴 때 쓸것 --> 
+	<select id="facilityReservList" parameterType="String" resultType="facilityReservVO">
+		select 
+	     faciReserv.facirsv_tm,
+	     faciReserv.facirsv_dt,
+	     faciReserv.faci_no,
+	     faciReserv.facirsv_no,
+	     faciReserv.mem_id,
+	     faci.faci_nm 
+		from FACIRSV faciReserv inner join FACI faci on (faciReserv.faci_no = FACI.faci_no)
+		where to_char(faciReserv.facirsv_dt) = to_char(to_date(#{facirsvDt},'yy/mm/dd'))
+	</select>
+	
+		 <!-- 	리스트 중 한개만 불러오기 --> 
+	<select id="onePickFacList" parameterType="String">
+		select 
+		*
+		from
+		FACIRSV
+		where FACIRSV_NO = {facirsvNo} and MEM_ID = #{memId}		
+	</select>
+	
+	<select id="timeList" resultType="timeVO">
+		select time from TIME
+	</select>
+	
+	<select id="facilityReservList2" parameterType="facilityReservVO" resultType="facilityReservVO">
+		SELECT 
+		     A.FACIRSV_TM, 
+		     B.FACIRSV_TM, 
+		     B.FACIRSV_DT,
+		     B.FACI_NO,
+		     B.FACIRSV_NO,
+		     B.MEM_ID 
+		FROM 
+		(
+		    SELECT '14:00' FACIRSV_TM FROM DUAL
+		    UNION ALL
+		    SELECT '15:00' FACIRSV_TM FROM DUAL
+		    UNION ALL
+		    SELECT '16:00' FACIRSV_TM FROM DUAL
+		    UNION ALL
+		    SELECT '17:00' FACIRSV_TM FROM DUAL
+		    UNION ALL
+		    SELECT '18:00' FACIRSV_TM FROM DUAL
+		    UNION ALL
+		    SELECT '19:00' FACIRSV_TM FROM DUAL
+		) A,
+		(
+		    SELECT FACIRSV_TM
+		    ,FACIRSV_DT
+		    ,FACI_NO
+		    ,FACIRSV_NO
+		    ,MEM_ID 
+		    FROM FACIRSV
+		    WHERE FACIRSV_DT = TO_CHAR(sysdate,'YY/MM/DD')
+		) B
+		ORDER BY 1
+	</select>
+	
+	
+</mapper>

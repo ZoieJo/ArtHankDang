@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.CalendarMapper">
+
+<!--상담일정 추가  -->
+<insert id="insertcslrgSchd" parameterType="CalendarVO">
+	insert into schd(schd_no, schd_tl, schd_cnt, schd_stt_dt,schd_end_dt, schd_cmcd, mem_id, cslrg_no)
+	values(SCHD_SEQ.nextval, #{schdTl},#{schdCnt},#{schdSttDt},#{schdEndDt},'sch05',#{memId}, #{schdNo})
+</insert> 
+
+<!--상담일정 수정 -->
+<update id="updatecslrgSchd" parameterType="CalendarVO">
+	update schd
+	set 
+	schd_tl = #{schdTl},
+	schd_cnt = #{schdCnt},
+	schd_stt_dt = #{schdSttDt},
+	schd_end_dt = #{schdEndDt}	
+	where cslrg_no = #{schdNo}
+</update>
+
+<!-- 상담일정 삭제 -->
+<delete id="deleteCslrgSchd" parameterType="String">
+delete schd 
+where cslrg_no = #{schdNo}
+</delete>
+
+<!--캘린더 일정  -->
+<insert id="insertCalendar" parameterType="CalendarVO">
+insert into schd
+(schd_no, schd_tl, schd_cnt, schd_stt_dt,schd_end_dt, schd_cmcd, mem_id)
+values
+(SCHD_SEQ.nextval, #{schdTl},#{schdCnt},#{schdSttDt},#{schdEndDt},#{schdCmcd},#{memId})
+</insert>
+
+<update id="updateCalendar" parameterType="CalendarVO">
+update schd
+set schd_tl = #{schdTl},
+    schd_cnt = #{schdCnt}, 
+    schd_stt_dt = #{schdSttDt},
+    schd_end_dt = #{schdEndDt}, 
+    schd_cmcd = #{schdCmcd}, 
+    mem_id = #{memId}
+where schd_no = #{schdNo}
+</update>
+
+<delete id="deleteCalendar" parameterType="String">
+delete schd 
+where schd_no = #{schdNo}
+</delete>
+
+
+<select id="selectCalendar" resultType="CalendarVO" parameterType="String">
+select schd_no,
+       schd_tl,
+	   schd_cnt,
+	   schd_stt_dt,
+	   schd_end_dt,
+	   schd_cmcd,
+	   mem_id
+from schd
+where schd_no = #{schdNo}
+</select>
+
+<select id="selectCalendarList">
+select schd_no,
+       schd_tl,
+	   schd_cnt,
+	   schd_stt_dt,
+	   schd_end_dt,
+	   schd_cmcd,
+	   mem_id
+from schd
+</select>
+
+<select id="selectMem" resultType="String">
+select mem_cmcd 
+from mem
+where mem_Id = #{memId}
+</select>
+
+
+<select id="selectCalendarPt" parameterType="String" resultType="CalendarVO">
+select schd_no,
+	   schd_tl,	   
+	   schd_stt_dt,
+	   schd_end_dt,
+       schd_cmcd,
+       mem_id
+from schd
+where mem_id = #{memId}
+union
+select schd_no,
+	   schd_tl,	   
+	   schd_stt_dt,
+	   schd_end_dt,
+       schd_cmcd,
+       mem_id
+from schd
+where schd_cmcd in ('sch02', 'sch04')
+</select>
+
+</mapper>

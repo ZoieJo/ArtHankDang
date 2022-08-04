@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.LikesMapper">
+
+	<select id="selectCountLike" parameterType="String"
+		resultType="int">
+		select
+		COUNT(*)
+		from LIKES
+		where BD_NO = #{bdNo}
+	</select>
+
+	<select id="checkLike" parameterType="likesVO" resultType="int">
+		select
+		COUNT(*)
+		from LIKES
+		where BD_NO = #{bdNo}
+		and
+		mem_id = #{memId}
+	</select>
+
+	<insert id="insertLike" parameterType="likesVO">
+		INSERT into LIKES(BD_NO,MEM_ID) VALUES(#{bdNo},#{memId})
+	</insert>
+
+	<delete id="deleteLike" parameterType="likesVO">
+		DELETE FROM LIKES
+		WHERE  BD_NO = #{bdNo}
+		AND    MEM_ID = #{memId}
+	</delete>
+
+	<delete id="deleteLikes" parameterType="String">
+		DELETE FROM LIKES
+		WHERE  BD_NO = #{bdNo}
+	</delete>
+
+</mapper>

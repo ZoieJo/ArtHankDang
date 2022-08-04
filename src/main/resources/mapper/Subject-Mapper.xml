@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.SubjectMapper">
+
+	<!-- 과목 리스트 가져오기 -->
+	<select id="selectSub" resultType="kr.or.arthakdang.subject.domain.SubjectVO">
+		select SUB_NO, SUB_NM, SUB_CRE_DT
+		from sub
+		where sub_del_wn = 'N'
+		order by SUB_CRE_DT		
+	</select>
+
+	<!-- 과목 삭제하기 -->
+	<update id="deleteSub" parameterType="String">
+	<![CDATA[
+		UPDATE sub
+		SET sub_del_wn = 'Y'
+		WHERE sub_no = #{subNo}
+	]]>
+	</update>
+
+	<!-- 과목 등록하기 -->
+	<insert id="insertSub" parameterType="String">
+	<![CDATA[
+		INSERT INTO sub (
+		    sub_no,
+		    sub_nm,
+		    sub_del_wn,
+		    sub_cre_dt
+		) VALUES (
+		    (SELECT ('0'|| nvl(max(sub_no + 1), 0))FROM sub),
+		    #{subNm},
+		    'N',
+		    SYSDATE
+		)
+	]]>
+	</insert>
+	
+	<!-- 과목 수정하기 -->
+	<update id="updateSub" parameterType="kr.or.arthakdang.subject.domain.SubjectVO">
+	<![CDATA[
+		UPDATE sub
+		SET sub_nm = #{subNm}
+		WHERE sub_no = #{subNo}
+	]]>
+	</update>
+
+</mapper>

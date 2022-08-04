@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+	<settings>
+	     <!-- 테이블 컬럼명에서 _를 지우고 다음글자를 대문자로 자동 치환하라는 의미 -->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<setting name="jdbcTypeForNull" value="VARCHAR"/>
+	</settings>
+	<typeAliases>
+		<typeAlias type="kr.or.arthakdang.domain.MemberVO" alias="memberVO"/>
+		<typeAlias type="kr.or.arthakdang.domain.AuthVO" alias="authVO"/>
+		<typeAlias type="kr.or.arthakdang.freeboard.domain.FreeboardVO" alias="freeboardVO"/>
+		<typeAlias type="kr.or.arthakdang.note.domain.NoteVO" alias="noteVO"/>
+		<typeAlias type="kr.or.arthakdang.note.domain.EmpVO" alias="empVO"/>
+		<typeAlias type="kr.or.arthakdang.domain.CourseVO" alias="courseVO"/>
+		<typeAlias type="kr.or.arthakdang.signup.domain.CourseDetailVO" alias="courseDetailVO"/>
+		<typeAlias type="kr.or.arthakdang.domain.CurspnVO" alias="curspnVO"/>
+		<typeAlias type="kr.or.arthakdang.signup.domain.OrderVO" alias="orderVO"/>
+		<typeAlias type="kr.or.arthakdang.signup.domain.OrderDetailVO" alias="orderDetailVO"/>
+		<typeAlias type="kr.or.arthakdang.signup.domain.CartVO" alias="cartVO"/>
+		<typeAlias type="kr.or.arthakdang.signup.domain.PaymentVO" alias="paymentVO"/>
+		<typeAlias type="kr.or.arthakdang.cslrg.domain.CslrgVO" alias="cslrgVO"/>
+		<typeAlias type="kr.or.arthakdang.calender.domain.CalendarVO" alias="CalendarVO"/>
+		<typeAlias type="kr.or.arthakdang.login.domain.FindAccountDTO" alias="findAccountDTO"/>
+		<typeAlias type="kr.or.arthakdang.freeboard.domain.LikesVO" alias="likesVO"/>
+		<typeAlias type="kr.or.arthakdang.freeboard.domain.ReplyVO" alias="ReplyVO"/>
+		<typeAlias type="kr.or.arthakdang.notice.domain.NoticeVO" alias="noticeVO"/>
+		<typeAlias type="kr.or.arthakdang.freeboard.domain.PageCondDTO" alias="pageCondDTO"/>
+		<typeAlias type="kr.or.arthakdang.signup.domain.CursPageCondDTO" alias="cursPageCondDTO"/>
+		<typeAlias type="kr.or.arthakdang.attendance.domain.AttendanceDTO" alias="attendanceDTO"/>
+		<typeAlias type="kr.or.arthakdang.attendance.domain.CourseDateDTO" alias="courseDateDTO"/>
+		<typeAlias type="kr.or.arthakdang.attendance.domain.StudentAttendanceListDTO" alias="studentAttendanceDTO"/>
+		<typeAlias type="kr.or.arthakdang.attendance.domain.ClassAttendanceListDTO" alias="classAttendanceDTO"/>
+		<typeAlias type="kr.or.arthakdang.attendance.domain.AttendanceInfoDTO" alias="attendanceInfoDTO"/>
+		<typeAlias type="kr.or.arthakdang.domain.CourseTimeDetailVO" alias="courseTimeDetailVO"/>
+		<typeAlias type="kr.or.arthakdang.message.domain.MessageDTO" alias="messageDTO"/>
+		<typeAlias type="kr.or.arthakdang.message.domain.PageDTO" alias="pageDTO"/>
+		<typeAlias type="kr.or.arthakdang.employeemanagement.domain.EmployeeVO" alias="employeeVO"/>
+		<typeAlias type="kr.or.arthakdang.crelecture.domain.LecturePlanVO" alias="lecturePlanVO"/>
+		<typeAlias type="kr.or.arthakdang.grade.domain.GradeInfoVO" alias="gradeInfoVO"/>
+		<typeAlias type="kr.or.arthakdang.grade.domain.GradeDTO" alias="gradeDTO"/>
+		<typeAlias type="kr.or.arthakdang.facilityreserv.domain.FacilityReservVO" alias="facilityReservVO"/>
+		<typeAlias type="kr.or.arthakdang.facilityreserv.domain.TimeVO" alias="timeVO"/>
+		<typeAlias type="kr.or.arthakdang.crelecture.domain.CursVO" alias="cursVO"/>
+		<typeAlias type="kr.or.arthakdang.crelecture.domain.TcrDtlVO" alias="tcrDtlVO"/>
+		<typeAlias type="kr.or.arthakdang.crelecture.domain.SearchInfoVO" alias="searchInfoVO"/>
+		<typeAlias type="kr.or.arthakdang.approval.domain.UsdeaprllnVO" alias="usdeaprllnVO"/>
+		<typeAlias type="kr.or.arthakdang.approval.domain.UsdeaprllndtlVO" alias="usdeaprllndtlVO"/>
+		<typeAlias type="kr.or.arthakdang.approval.domain.UsdeaprlreflnVO" alias="usdeaprlreflnVO"/>
+		<typeAlias type="kr.or.arthakdang.approval.domain.AprldocVO" alias="aprldocVO"/>
+		<typeAlias type="kr.or.arthakdang.approval.domain.AprllnVO" alias="aprllnVO"/>
+		<typeAlias type="kr.or.arthakdang.cslrg.domain.CslrgPageCondDTO" alias="CslrgPageCondDTO"/>
+		<typeAlias type="kr.or.arthakdang.approval.domain.AprlreflnVO" alias="aprlrefVO"/>
+	</typeAliases>
+</configuration>

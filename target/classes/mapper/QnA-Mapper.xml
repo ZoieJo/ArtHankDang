@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.QnAMapper">
+	
+	<select id="selectQnAList" resultType="kr.or.arthakdang.qna.domain.QnAVO">
+		select bd_no, bd_cmcd, bd_tl, bd_cnt, bd_wtr, bd_wt_dt, bd_md_dt, bd_views, bd_suc
+		from bd
+		where bd_cmcd = '02'
+	</select>
+	
+	<insert id="writeQnA" parameterType="kr.or.arthakdang.qna.domain.QnAVO">
+		insert into bd(bd_no, bd_cmcd, bd_tl, bd_cnt, bd_wtr, bd_wt_dt, bd_md_dt, bd_views)
+		values (concat('qna',lpad(qna_seq.nextval, 5, '0')), '02', #{bdTl}, '빠르게 답변 달아드리겠습니다 !', #{bdWtr}, sysdate, sysdate, 0)
+	</insert>
+	<delete id="deleteQnA" parameterType="kr.or.arthakdang.qna.domain.QnAVO">
+		delete from bd
+		where bd_cmcd = '02'
+		and bd_no = #{bdNo}
+	</delete>
+	<update id="updateQnA" parameterType="kr.or.arthakdang.qna.domain.QnAVO">
+		update bd
+		set bd_cnt = #{bdCnt}
+		, bd_suc = 'Y'
+		where bd_no = #{bdNo}
+	</update>
+	
+	<select id="searchQnA" parameterType="String" resultType="kr.or.arthakdang.qna.domain.QnAVO">
+		select bd_no, bd_cmcd, bd_tl, bd_cnt, bd_wtr, bd_wt_dt, bd_md_dt, bd_views, bd_suc
+		from bd
+		where bd_cmcd = '02'
+		and bd_tl like '%' ||  #{bdTl} || '%'
+	</select>
+	
+	<select id="selectQnA" parameterType="String" resultType="kr.or.arthakdang.qna.domain.QnAVO">
+		select bd_no, bd_cmcd, bd_tl, bd_cnt, bd_wtr, bd_wt_dt, bd_md_dt, bd_views
+		from bd
+		where bd_cmcd = '02'
+		and bd_no = #{bdNo}
+	</select>
+	
+</mapper>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.LectureManagementMapper">
+	<select id="lectureList" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureVO">
+		select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+		curseva_scr, c1.sub_no as sub_no, curs_su_pri, faci_nm, c1.curspn_no, c2.tcr_id,
+		c2.curspn_cnt as curspn_cnt, sub.sub_nm, emp.emp_nm as empNm
+		from curs c1
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		left outer join sub sub
+		on c1.sub_no = sub.sub_no
+		left outer join emp emp
+		on c2.tcr_id = emp.emp_id
+	</select>
+	
+	<select id="choiceLecture" parameterType="String" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureVO">
+	select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+	curseva_scr, c1.sub_no as sub_no, curs_su_pri, faci_nm, c1.curspn_no, c2.tcr_id,
+	c2.curspn_cnt as curspn_cnt, sub.sub_nm, emp.emp_nm
+	from curs c1
+	left outer join curspn c2
+	on c1.curspn_no = c2.curspn_no
+	left outer join sub sub
+	on c1.sub_no = sub.sub_no
+	left outer join emp emp
+	on c2.tcr_id = emp.emp_id
+	where c1.curs_no = #{cursNo}
+	</select>
+	
+	<select id="lectureStudentList" parameterType="String" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureStudentVO">
+	select c1.curs_no, s2.stu_id, s2.stu_nm, s2.stu_ph_no, s2.stu_email
+	from curs c1
+	left outer join su s1
+	on c1.curs_no = s1.curs_no
+	left outer join stu s2
+	on s1.stu_id = s2.stu_id
+	where c1.curs_no = #{cursNo}
+	</select>
+	
+	<select id="lectureSearchStudent" parameterType="kr.or.arthakdang.lecturemanagement.domain.LectureStudentVO" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureStudentVO">
+		select c1.curs_no, s2.stu_id, s2.stu_nm, s2.stu_ph_no, s2.stu_email
+		from curs c1
+		left outer join su s1
+		on c1.curs_no = s1.curs_no
+		left outer join stu s2
+		on s1.stu_id = s2.stu_id
+		where c1.curs_no = #{cursNo}
+	    and s2.stu_nm like '%' || #{stuNm} || '%'
+	</select>
+	
+	<select id="searchLecture" parameterType="String" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureVO">
+		select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+		curseva_scr, c1.sub_no as sub_no, curs_su_pri, faci_nm, c1.curspn_no, c2.tcr_id,
+		c2.curspn_cnt as curspn_cnt, sub.sub_nm, emp.emp_nm as empNm
+		from curs c1
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		left outer join sub sub
+		on c1.sub_no = sub.sub_no
+		left outer join emp emp
+		on c2.tcr_id = emp.emp_id
+		where curs_nm like '%' || #{cursNm} || '%'
+	</select>
+	
+	<select id="lectureListPage" parameterType="kr.or.arthakdang.lecturemanagement.domain.LectureListPageCountVO" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureVO">
+       	select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+		curseva_scr, sub_no, curs_su_pri, faci_nm, curspn_no, tcr_id,
+		A.curspn_cnt, A.sub_nm, A.emp_nm, A.myrownum 
+        from
+        (select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+		curseva_scr, c1.sub_no as sub_no, curs_su_pri, faci_nm, c1.curspn_no, c2.tcr_id,
+		c2.curspn_cnt as curspn_cnt, sub.sub_nm, emp.emp_nm as emp_nm, rownum as myrownum
+		from curs c1
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		left outer join sub sub
+		on c1.sub_no = sub.sub_no
+		left outer join emp emp
+		on c2.tcr_id = emp.emp_id
+		<![CDATA[
+        where rownum <= #{pageNum} * #{pageSize}
+        ]]>
+        ) A
+        <![CDATA[
+        where myrownum > (#{pageNum} -1) * #{pageSize}
+        ]]>
+        order by curs_no desc
+	</select>
+	
+	<select id="lectureCnt" resultType="int">
+		select count(*) from curs
+	</select>
+	
+	<select id="searchLectureCnt" parameterType="String" resultType="int">
+		select count(*) from curs
+		where curs_nm like '%' || #{cursNm} || '%'
+	</select>
+	
+	<select id="searchLectureListPage" parameterType="kr.or.arthakdang.lecturemanagement.domain.LectureListPageCountVO" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureVO">
+	select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+		curseva_scr, sub_no, curs_su_pri, faci_nm, curspn_no, tcr_id,
+		A.curspn_cnt, A.sub_nm, A.emp_nm, A.myrownum 
+        from
+        (select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+		curseva_scr, c1.sub_no as sub_no, curs_su_pri, faci_nm, c1.curspn_no, c2.tcr_id,
+		c2.curspn_cnt as curspn_cnt, sub.sub_nm, emp.emp_nm as emp_nm, rownum as myrownum
+		from curs c1
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		left outer join sub sub
+		on c1.sub_no = sub.sub_no
+		left outer join emp emp
+		on c2.tcr_id = emp.emp_id
+		<![CDATA[
+        where rownum <= #{pageNum} * #{pageSize}
+        ]]>
+        and curs_nm like '%' || #{cursNm} || '%'
+        ) A
+        <![CDATA[
+        where myrownum > (#{pageNum} -1) * #{pageSize}
+        ]]>
+        and curs_nm like '%' || #{cursNm} || '%'
+        order by curs_no desc
+	</select>
+</mapper>

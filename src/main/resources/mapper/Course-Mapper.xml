@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.CourseMapper">
+
+
+
+	<resultMap type="courseVO" id="courseMap">
+		<id property="cursNo" column="curs_no" />
+		<result property="cursNo" column="curs_no" />
+		<result property="cursNm" column="curs_nm" />
+		<result property="cursSuNum" column="curs_su_num" />
+		<result property="cursSttDt" column="curs_stt_dt" />
+		<result property="cursEndDt" column="curs_end_dt" />
+		<result property="cursevaScr" column="curseva_scr" />
+		<result property="subNo" column="sub_no" />
+		<result property="subNm" column="sub_nm" />
+		<result property="curspnNo" column="curspn_no" />
+		<result property="cursSuPri" column="curs_su_pri" />
+		<result property="faciNm" column="faci_nm" />
+		<collection property="cursTmdtl" resultMap="courseTimeDetailMap" />
+	</resultMap>
+
+	<resultMap type="courseTimeDetailVO" id="courseTimeDetailMap">
+		<result property="cursDay" column="curs_day" />
+		<result property="cursNo" column="curs_no" />
+		<result property="cursSttHh" column="curs_stt_hh" />
+		<result property="cursSttMm" column="curs_stt_mm" />
+		<result property="cursEndHh" column="curs_end_hh" />
+		<result property="cursEndMm" column="curs_end_mm" />
+	</resultMap>
+
+	<select id="selectOneCourse" resultMap="courseMap">
+		SELECT c.CURS_NO, 
+		c.CURS_NM,
+		c.CURS_SU_NUM,
+		c.CURS_STT_DT,
+		c.CURS_END_DT, 
+		c.CURSEVA_SCR, 
+		c.SUB_NO,
+		c.CURS_SU_PRI, 
+		c.FACI_NM, 
+		c.CURSPN_NO,
+		p.TCR_ID,
+		(SELECT s.SUB_NM FROM SUB s WHERE s.SUB_NO=c.SUB_NO) AS sub_nm
+FROM CURS c LEFT OUTER JOIN CURSPN p ON c.CURSPN_NO =p.CURSPN_NO 
+WHERE c.CURS_NO=#{cursNo}
+	</select>
+
+	<select id="selectOneCourseTimeDetails"
+		resultType="courseTimeDetailVO">
+		SELECT * FROM CURSTMDTL WHERE CURS_NO=#{cursNo}
+	</select>
+
+	<select id="selectOneCourseTimeDetailByDay"
+		resultType="courseTimeDetailVO">
+		SELECT * FROM CURSTMDTL WHERE CURS_NO=#{cursNo} AND CURS_DAY=#{cursDay}
+	</select>
+
+	<select id="selectSignedStudentListByCourse" resultType="String"
+		parameterType="String">
+		SELECT STU_ID FROM SU WHERE CURS_NO=#{cursNo}
+	</select>
+
+	<select id="selectCourseAssignedTeacher" resultType="String"
+		parameterType="String">
+		SELECT TCR_ID FROM CURSPN LEFT OUTER JOIN CURS ON
+		CURS.CURSPN_NO=CURSPN.CURSPN_NO WHERE CURS.CURS_NO=#{cursNo}
+	</select>
+
+	<select id="selectTeachersAssignedCourse" resultMap="courseMap"
+		parameterType="String">
+		SELECT * FROM CURSPN LEFT OUTER JOIN CURS ON CURS.CURSPN_NO=CURSPN.CURSPN_NO
+		LEFT OUTER JOIN CURSTMDTL ON CURS.CURS_NO=CURSTMDTL.CURS_NO
+		WHERE CURSPN.TCR_ID=#{tcrId}
+	</select>
+
+	<select id="selectCourseDateInfo" parameterType="String"
+		resultType="courseDateDTO">
+		SELECT CURS_STT_DT, CURS_END_DT FROM CURS WHERE CURS_NO=#{cursNo}
+	</select>
+
+	<select id="selectTeachersCourseInProgress" parameterType="String"
+		resultMap="courseMap">
+		SELECT c.CURS_NO, 
+		c.CURS_NM,
+		c.CURS_SU_NUM,
+		c.CURS_STT_DT,
+		c.CURS_END_DT, 
+		c.CURSEVA_SCR, 
+		c.SUB_NO, 
+		c.CURS_SU_PRI, 
+		c.FACI_NM, 
+		c.CURSPN_NO, 
+		(SELECT s.SUB_NM FROM SUB s WHERE s.SUB_NO=c.SUB_NO) AS sub_nm
+		 FROM CURS c LEFT OUTER JOIN CURSPN p ON c.CURSPN_NO=p.CURSPN_NO
+		WHERE p.TCR_ID=#{tcrId} AND  <![CDATA[  c.CURS_STT_DT<SYSDATE AND c.CURS_END_DT>SYSDATE    ]]>
+	</select>
+
+	<select id="selectTeachersCourseCompleted" parameterType="String"
+		resultMap="courseMap">
+		SELECT c.CURS_NO, 
+		c.CURS_NM,
+		c.CURS_SU_NUM,
+		c.CURS_STT_DT,
+		c.CURS_END_DT, 
+		c.CURSEVA_SCR, 
+		c.SUB_NO, 
+		c.CURS_SU_PRI, 
+		c.FACI_NM, 
+		c.CURSPN_NO, 
+		(SELECT s.SUB_NM FROM SUB s WHERE s.SUB_NO=c.SUB_NO) AS sub_nm
+		 FROM CURS c LEFT OUTER JOIN CURSPN p ON c.CURSPN_NO=p.CURSPN_NO
+		WHERE p.TCR_ID=#{tcrId} AND  <![CDATA[  c.CURS_END_DT<SYSDATE   ]]>
+	</select>
+
+<select id="selectStudentsCourseInProgress" parameterType="String"
+		resultMap="courseMap">
+
+SELECT c.CURS_NO, 
+		c.CURS_NM,
+		c.CURS_SU_NUM,
+		c.CURS_STT_DT,
+		c.CURS_END_DT, 
+		c.CURSEVA_SCR, 
+		c.SUB_NO, 
+		c.CURS_SU_PRI, 
+		c.FACI_NM, 
+		c.CURSPN_NO, 
+		su.SU_CMCD,
+		su.STU_ID,
+		p.TCR_ID,
+		(SELECT s.SUB_NM FROM SUB s WHERE s.SUB_NO=c.SUB_NO) AS sub_nm
+FROM CURS c LEFT OUTER JOIN CURSPN p ON c.CURSPN_NO =p.CURSPN_NO 
+			LEFT OUTER JOIN SU su ON su.CURS_NO=c.CURS_NO
+WHERE su.STU_ID =#{stuId} AND <![CDATA[ c.CURS_STT_DT<SYSDATE AND c.CURS_END_DT>SYSDATE AND su.SU_CMCD<>'SU88' ]]>
+</select>
+<select id="selectStudentsCourseCompleted" parameterType="String"
+		resultMap="courseMap">
+
+SELECT c.CURS_NO, 
+		c.CURS_NM,
+		c.CURS_SU_NUM,
+		c.CURS_STT_DT,
+		c.CURS_END_DT, 
+		c.CURSEVA_SCR, 
+		c.SUB_NO, 
+		c.CURS_SU_PRI, 
+		c.FACI_NM, 
+		c.CURSPN_NO, 
+		su.SU_CMCD,
+		su.STU_ID,
+		p.TCR_ID,
+		(SELECT s.SUB_NM FROM SUB s WHERE s.SUB_NO=c.SUB_NO) AS sub_nm
+FROM CURS c LEFT OUTER JOIN CURSPN p ON c.CURSPN_NO =p.CURSPN_NO 
+			LEFT OUTER JOIN SU su ON su.CURS_NO=c.CURS_NO
+WHERE su.STU_ID =#{stuId} AND <![CDATA[ c.CURS_END_DT<SYSDATE AND su.SU_CMCD<>'SU88']]>
+</select>
+<select id="selectOneStudentSigningStatus" resultType="String" parameterType="String">
+SELECT s.SU_CMCD FROM SU s WHERE s.STU_ID=#{stuId} AND s.CURS_NO=#{cursNo}
+</select>
+</mapper>

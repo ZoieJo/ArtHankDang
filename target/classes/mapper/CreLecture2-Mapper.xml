@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.CreLectureMapper2">
+
+<!-- 	<select id="selectCursList" resultType="cursVO"> -->
+<!-- 		SELECT -->
+<!-- 		    c.curs_no, -->
+<!-- 		    c.curs_nm, -->
+<!-- 		    s.sub_nm, -->
+<!-- 		    cp.curspn_cnt -->
+<!-- 		FROM sub s right join curs c on (c.sub_no = s.sub_no) -->
+<!-- 		           left join curspn cp on (c.curspn_no = cp.curspn_no) -->
+<!-- 		where curs_stt_dt >= sysdate -->
+<!-- 	</select> -->
+
+	<!-- 진행중인 강의 가져오기 -->
+	<select id="selectCursList" resultType="cursVO">
+		select A.*, '/resources/Thumbnail/'||'s_'||I.attch_std_nm attch_path
+		from (SELECT
+		    c.curs_no,
+		    c.curs_nm,
+		    s.sub_nm,
+		    cp.curspn_cnt
+		FROM sub s right join curs c on (c.sub_no = s.sub_no)
+		           left join curspn cp on (c.curspn_no = cp.curspn_no)
+		where curs_stt_dt >= sysdate
+		order by c.curs_stt_dt)A join INTEATTCH I on a.curs_no = I.inteattch_no
+	</select>
+	
+	<!-- 강의 상세정보 가져오기 -->
+	<select id="selectCursDtl" parameterType="String" resultType="cursVO">
+		select B.*, I.attch_path
+		from(
+		select a.curs_no, a.sub_nm, a.curs_nm, a.emp_nm, a.curs_su_num, a.curs_stt_dt, a.curs_end_dt, 
+		cd.curs_day, cd.curs_stt_hh, cd.curs_stt_mm, cd.curs_end_hh, cd.curs_end_mm
+		from (SELECT
+		    c.curs_no,
+		    s.sub_nm,
+		    c.curs_nm,
+		    c.curs_su_num,
+		    c.curs_stt_dt,
+		    c.curs_end_dt,
+		    e.emp_nm
+		FROM sub s right join curs c on (c.sub_no = s.sub_no)
+		           left join curspn cp on (c.curspn_no = cp.curspn_no)
+		           left join emp e on (cp.tcr_id = e.emp_id)
+		) A join curstmdtl cd on(A.curs_no = cd.curs_no)
+		where a.curs_no =  #{cursNo}) B join inteattch I on(B.curs_no = I.inteattch_no)
+	</select>
+	
+<!-- 	<select id="selectCursDtl" parameterType="String" resultType="cursVO"> -->
+<!-- 		select a.sub_nm, a.curs_nm, a.emp_nm, a.curs_su_num, a.curs_stt_dt, a.curs_end_dt,  -->
+<!-- 		cd.curs_day, cd.curs_stt_hh, cd.curs_stt_mm, cd.curs_end_hh, cd.curs_end_mm -->
+<!-- 		from (SELECT -->
+<!-- 		    c.curs_no, -->
+<!-- 		    s.sub_nm, -->
+<!-- 		    c.curs_nm, -->
+<!-- 		    c.curs_su_num, -->
+<!-- 		    c.curs_stt_dt, -->
+<!-- 		    c.curs_end_dt, -->
+<!-- 		    e.emp_nm -->
+<!-- 		FROM sub s right join curs c on (c.sub_no = s.sub_no) -->
+<!-- 		           left join curspn cp on (c.curspn_no = cp.curspn_no) -->
+<!-- 		           left join emp e on (cp.tcr_id = e.emp_id) -->
+<!-- 		) A join curstmdtl cd on(A.curs_no = cd.curs_no) -->
+<!-- 		where a.curs_no = #{cursNo}	 -->
+<!-- 	</select> -->
+
+	<!-- 강의평가 리스트 -->
+	<select id="selectCursEvaList" resultType="kr.or.arthakdang.crelecture.domain.CursEvaluationVO">
+		select A.curseva_dt, A.curseva_scr, A.curseva_cnt, C.curs_nm
+		from(select curseva_dt, curseva_scr, curseva_cnt, curs_no
+		from curseva) A, curs C
+		where A.curs_no = C.CURS_NO
+		order by A.curseva_dt desc
+	</select>
+	
+</mapper>

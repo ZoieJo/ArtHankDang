@@ -1,0 +1,181 @@
+@charset "UTF-8";
+
+body {
+	margin-top: 10px;
+}
+
+.facWrap #makeReserve:focus{
+	outline: none;
+}
+
+.facWrap .bg-light-gray {
+	background-color: #f7f7f7;
+}
+
+.facWrap .table-bordered thead td, .table-bordered thead th {
+	border-bottom-width: 2px;
+}
+
+.facWrap .table thead th {
+	vertical-align: bottom;
+	border-bottom: 2px solid #dee2e6;
+}
+
+.facWrap .table-bordered td, .table-bordered th {
+	border: 1px solid #dee2e6;
+}
+
+.facWrap .bg-sky.box-shadow {
+	box-shadow: 0px 5px 0px 0px #00a2a7
+}
+
+.facWrap .bg-orange.box-shadow {
+	box-shadow: 0px 5px 0px 0px #af4305
+}
+
+.facWrap .bg-green.box-shadow {
+	box-shadow: 0px 5px 0px 0px #4ca520
+}
+
+.facWrap .bg-yellow.box-shadow {
+	box-shadow: 0px 5px 0px 0px #dcbf02
+}
+
+.facWrap .bg-pink.box-shadow {
+	box-shadow: 0px 5px 0px 0px #e82d8b
+}
+
+.facWrap .bg-purple.box-shadow {
+	box-shadow: 0px 5px 0px 0px #8343e8
+}
+
+.facWrap .bg-lightred.box-shadow {
+	box-shadow: 0px 5px 0px 0px #d84213
+}
+
+.facWrap .bg-sky {
+	background-color: #02c2c7
+}
+
+.facWrap .bg-orange {
+	background-color: #e95601
+}
+
+.facWrap .bg-green {
+	background-color: #5bbd2a
+}
+
+.facWrap .bg-yellow {
+	background-color: #f0d001
+}
+
+.facWrap .bg-pink {
+	background-color: #ff48a4
+}
+
+.facWrap .bg-purple {
+	background-color: #9d60ff
+}
+
+.facWrap .bg-lightred {
+	background-color: #ff5722
+}
+
+.facWrap .padding-15px-lr {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.facWrap .padding-5px-tb {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.facWrap .margin-10px-bottom {
+	margin-bottom: 10px;
+}
+
+.facWrap .border-radius-5 {
+	border-radius: 5px;
+}
+
+.facWrap .margin-10px-top {
+	margin-top: 10px;
+}
+
+.facWrap .font-size14 {
+	font-size: 14px;
+}
+
+.facWrap .text-light-gray {
+	color: #d6d5d5;
+}
+
+.facWrap .font-size13 {
+	font-size: 13px;
+}
+
+.facWrap .table {
+	table-layout: fixed;
+}
+
+.facWrap .table-bordered td, .table-bordered th {
+	border: 1px solid #dee2e6;
+}
+
+.facWrap .table td,
+.facWrap .table th {
+	padding: .75rem;
+	vertical-align: top;
+	border-top: 1px solid #dee2e6;
+}
+
+.facWrap .table td {
+	background-color: white;
+}
+
+.facWrap .tui-datepicker-input {
+	position: relative;
+	width: 100%;
+	height: 27px;
+	border-radius: 5px;
+	border: solid 0px rgba(0, 0, 0, 0.3);
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1;
+	opacity: 1;
+}
+
+.facWrap input#datePicker {
+    height: 50px;
+    font-size: 20px;
+    text-align: center;	
+}
+
+.facWrap .tui-datepicker-input i {
+	position: absolute;
+    top: 3px;
+	right: 15px;
+    font-size: 20px;
+}
+
+.facWrap .form-control datepicker-here form-control digits {
+	width: 50px;
+	border: none;
+	-webkit-appearance: none;
+	margin-left: 10px;
+	overflow: auto;
+	z-index: -1;
+	font-size: 15px;
+}
+
+.facWrap .form-control datepicker-here form-control digits:focus {
+	outline: none;
+	width: 300px;
+	text-align: left;
+}
+
+.facWrap .fa fa-calendar {
+	font-size: 15px;
+}

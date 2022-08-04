@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.ReplyMapper">
+	
+<!-- 	댓글 추가 -->
+	<insert id="insertReply" parameterType="replyVO">
+		insert into rpy (rpy_no, bd_no, rpy_cnt, rpy_wt_dt, mem_id)
+		values(
+		(SELECT CASE WHEN MAX(RPY_NO) IS NULL THEN 'rpy001'
+		 ELSE
+		 SUBSTR(MAX(RPY_NO),1,3) || TRIM(TO_CHAR(SUBSTR(MAX(RPY_NO),4) + 1,'000')) 
+		 END
+		FROM RPY),
+		#{bdNo},
+		#{rpyCnt},
+		sysdate,
+		#{memId})
+		
+	</insert>
+
+	<update id="updateReply" parameterType="replyVO">
+		update rpy set
+		rpy_cnt = #{rpyCnt},
+		RPY_MD_DT = sysdate
+		where rpy_no = #{rpyNo}
+	</update>
+
+	<delete id="deleteReply" parameterType="String">
+		delete from
+		rpy where rpy_no = #{rpyNo}
+	</delete>
+
+<!-- parameterType = > #{rpyNo} 이런거임 -->
+<!-- resultType => 결과를 넘겨주는거임 -->
+	<select id="selectReply" parameterType="int"
+		resultType="replyVO">
+		select * from rpy where rpy_no = #{rpyNo}
+	</select>
+
+<!-- 	댓글 조회 -->
+	<select id="selectReplyList" parameterType="string" resultType="replyVO">
+        select bd_no, rpy_no, rpy_cnt, rpy_wt_dt, rpy.mem_id as mem_id, mem_nm
+        from rpy inner join v_mem_nm
+        on (rpy.mem_id = v_mem_nm.mem_id)
+        where bd_no = #{bdNo}
+        order by rpy_wt_dt desc
+	</select>
+
+	<select id="selectReplyList2" parameterType="int"
+		resultType="replyVO">
+		select * from rpy
+		where bd_no = #{bdNo}
+		order by bd_no desc
+	</select>
+	
+	<select id="selectReplyListCnt" parameterType="string"
+		resultType="int">
+		select count(*) from rpy
+		where bd_no = #{bdNo}
+	</select>
+</mapper>
+
+
+
+
+
+

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.MyLectureMapper">
+	<select id="myLectureList" parameterType="String" resultType="kr.or.arthakdang.mylecture.domain.MyLectureVO">
+		select c1.curs_no, c1.curs_nm, c1.curs_su_num, c1.curs_stt_dt, c1.curs_end_dt, c1.curseva_scr
+		, c1.sub_no, c1.curs_su_pri, c1.faci_nm, c1.curspn_no
+		, c2.tcr_id
+		, s1.sub_nm
+		, e1.emp_nm
+		from curs c1
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		left outer join sub s1
+		on c1.sub_no = s1.sub_no
+		left outer join emp e1
+		on c2.tcr_id = e1.emp_id
+		where c2.tcr_id = #{tcrId}
+	</select>
+	
+	<select id="lectureStuCnt" parameterType="kr.or.arthakdang.mylecture.domain.MyLectureVO" resultType="int">
+		select count(*)
+		from su
+		where curs_no = #{cursNo} 
+	</select>
+	
+	<select id="searchMyLecture" parameterType="kr.or.arthakdang.mylecture.domain.MyLectureVO" resultType="kr.or.arthakdang.mylecture.domain.MyLectureVO">
+		select c1.curs_no, c1.curs_nm, c1.curs_su_num, c1.curs_stt_dt, c1.curs_end_dt, c1.curseva_scr
+		, c1.sub_no, c1.curs_su_pri, c1.faci_nm, c1.curspn_no
+		, c2.tcr_id
+		, s1.sub_nm
+		, e1. emp_nm
+		from curs c1
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		left outer join sub s1
+		on c1.sub_no = s1.sub_no
+		left outer join emp e1
+		on c2.tcr_id = e1.emp_id
+		where c2.tcr_id = #{tcrId}
+		and c1.curs_nm like '%' || #{cursNm} || '%'
+	</select>
+	
+	<select id="MyLectureScrAvg" parameterType="kr.or.arthakdang.mylecture.domain.MyLectureVO" resultType="int">
+		select nvl(avg(curseva_scr),0) as curseva_scr
+		from curseva
+		where curs_no = #{cursNo}
+	</select>
+	
+	<select id="MyLectureReview" parameterType="kr.or.arthakdang.mylecture.domain.MyLectureVO" resultType="kr.or.arthakdang.mylecture.domain.MyLectureVO">
+		select c1.curseva_dt, c1.curseva_scr, c1.curseva_cnt, c1.curs_no, c1.stu_id
+		from curseva c1
+		left outer join curs c2
+		on c1.curs_no = c2.curs_no
+		left outer join curspn c3
+		on c2.curspn_no = c3.curspn_no
+		where tcr_id = #{tcrId}
+		and c1.curs_no = #{cursNo}
+	</select>
+	
+<!-- 	<select id="myLectureStudentList" parameterType="String" resultType="kr.or.arthakdang.lecturemanagement.domain.LectureStudentVO"> -->
+<!-- 		select c1.curs_no, s2.stu_id, s2.stu_nm, s2.stu_ph_no, s2.stu_email -->
+<!-- 		from curs c1 -->
+<!-- 		full outer join su s1 -->
+<!-- 		on c1.curs_no = s1.curs_no -->
+<!-- 		left outer join stu s2 -->
+<!-- 		on s1.stu_id = s2.stu_id -->
+<!-- 		where c1.curs_no = #{cursNo} -->
+<!-- 	</select> -->
+
+	<select id="myLectureInfo" parameterType="kr.or.arthakdang.mylecture.domain.MyLectureVO" resultType="kr.or.arthakdang.mylecture.domain.MyLectureVO">
+		select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt,
+		curseva_scr, c1.sub_no as sub_no, curs_su_pri, faci_nm, c1.curspn_no, c2.tcr_id,
+		c2.curspn_cnt as curspn_cnt, sub.sub_nm, emp.emp_nm as empNm, c2.curspn_cnt
+		from curs c1
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		left outer join sub sub
+		on c1.sub_no = sub.sub_no
+		left outer join emp emp
+		on c2.tcr_id = emp.emp_id
+		where c2.tcr_id = #{tcrId}
+		and c1.curs_no = #{cursNo}
+	</select>
+	
+	<select id="myLectureStudent" parameterType="kr.or.arthakdang.mylecture.domain.MyLectureVO" resultType="kr.or.arthakdang.mylecture.domain.MyLectureStudentVO">
+	select c1.curs_no, s2.stu_id, s2.stu_nm, s2.stu_ph_no, s2.stu_email
+	from curs c1
+	left outer join su s1
+	on c1.curs_no = s1.curs_no
+	left outer join stu s2
+	on s1.stu_id = s2.stu_id
+	left outer join curspn c2
+	on c1.curspn_no = c2.curspn_no
+    where c1.curs_no = #{cursNo}
+    and c2.tcr_id = #{tcrId}
+	</select>
+	
+	<select id="myLectureSearchStudent" parameterType="kr.or.arthakdang.mylecture.domain.MyLectureVO" resultType="kr.or.arthakdang.mylecture.domain.MyLectureStudentVO">
+	select c1.curs_no, s2.stu_id, s2.stu_nm, s2.stu_ph_no, s2.stu_email
+		from curs c1
+		left outer join su s1
+		on c1.curs_no = s1.curs_no
+		left outer join stu s2
+		on s1.stu_id = s2.stu_id
+		left outer join curspn c2
+		on c1.curspn_no = c2.curspn_no
+		where c1.curs_no = #{cursNo}
+	    and s2.stu_nm like '%' || #{stuNm} || '%'
+	    and c2.tcr_id = #{tcrId}
+	</select>
+</mapper>

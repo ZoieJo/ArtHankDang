@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.CreLectureMapper">
+
+	<!-- [교원] 강의실 정보 가져오기 -->
+	<select id="selectFaciInfo" resultType="lecturePlanVO">
+		select faci_no,faci_nm, faci_loc
+		from faci
+	</select>
+
+	<!-- [교원] 강의 계획서 등록 -->
+	<insert id="insertLecPn" parameterType="lecturePlanVO">
+		<![CDATA[
+		INSERT INTO curspn (
+		    CURSPN_NO,
+		    CURSPN_RG_DT,
+		    CURSPN_APRL_ST,
+		    CURSPN_CURS_NM,
+		    CURSPN_CNT,
+		    TCR_ID,
+		    FACI_NO,
+		    curspn_curs_num
+		) VALUES (
+		    ('PN' || LPAD(SEQ_CURSPN.NEXTVAL,5,0)),
+		    sysdate,
+		    '승인대기',
+		    #{curspnCursNm},
+		    #{curspnCnt},
+		    #{tcrId},
+		    #{faciNo},
+		    #{curspnCursNum}
+		)
+		]]>
+	</insert>
+	
+	<!-- [교원] 강의계획서 파일 업로드 정보 등록 -->
+	<insert id="insertFile" parameterType="kr.or.arthakdang.crelecture.domain.InteattchVO">
+		<selectKey keyProperty="inteattchNo" resultType="java.lang.String" order="BEFORE">
+			SELECT 'PN' || LPAD(SEQ_CURSPN.CURRVAL,5,0) FROM DUAL
+		</selectKey>
+		<![CDATA[
+		INSERT INTO inteattch (
+		    inteattch_no,
+		    inteattch_od,
+		    attch_path,
+		    attch_nm,
+		    attch_std_nm,
+		    attch_ext,
+		    attch_sz,
+		    attch_rg_dt,
+		    attch_md_dt,
+		    rg_mem_id,
+		    md_mem_id
+		) VALUES (
+		    #{inteattchNo},
+		    #{inteattchOd},
+		    #{attchPath},
+		    #{attchNm},
+		    #{attchStdNm},
+		    #{attchExt},
+		    #{attchSz},
+		    sysdate,
+		    sysdate,
+		    #{rgMemId},
+		    #{mdMemId}
+		)
+		]]>
+	</insert>
+	
+	<!-- [교원] 내 강의계획서 리스트 가져오기 -->
+	<select id="selectPnList" parameterType="searchInfoVO" resultType="lecturePlanVO"> 
+		<![CDATA[
+		SELECT
+		    curspn_no,
+		    curspn_rg_dt,
+		    curspn_aprl_st,
+		    curspn_curs_nm
+		FROM curspn
+		where tcr_id = #{tcrId}
+		]]>
+	   	<!-- 계획번호로 검색 -->
+		<if test='type=="N" and keyword!=null '>
+		<![CDATA[
+			AND curspn_no LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>
+	   	<!-- 제목으로 검색 -->
+		<if test='type=="T" and keyword!=null '>
+		<![CDATA[
+			AND curspn_curs_nm LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>
+	   	<!-- 신청상태로 검색 -->
+		<if test='type=="S" and keyword!=null '>
+		<![CDATA[
+			AND curspn_aprl_st LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>
+		<![CDATA[
+		order by curspn_rg_dt desc
+		]]>
+	</select>
+	
+<!-- 		SELECT -->
+<!-- 		    c.curspn_no, -->
+<!-- 		    c.curspn_curs_nm, -->
+<!-- 		    c.curspn_cnt, -->
+<!-- 		    c.curspn_rg_dt, -->
+<!-- 		    c.curspn_aprl_st, -->
+<!-- 		    c.curspn_aprl_dt, -->
+<!-- 		    f.faci_nm, -->
+<!-- 		    c.emp_id, -->
+<!-- 		    e.emp_nm, -->
+<!-- 	        c.tcr_id, -->
+<!-- 		    c.curspn_curs_num -->
+<!-- 		from faci f right join curspn c on f.faci_no = c.faci_no -->
+<!-- 		left join emp e on c.tcr_id = e.emp_id -->
+<!-- 		where curspn_no = #{curspnNo}	 -->
+
+	<!-- [교원/직원] 강의 계획서 상세보기 -->
+	<select id="selectPnDtl" parameterType="String" resultType="lecturePlanVO">
+		select A.*, I.ATTCH_PATH
+		from (SELECT
+		    c.curspn_no,
+		    c.curspn_curs_nm,
+		    c.curspn_cnt,
+		    c.curspn_rg_dt,
+		    c.curspn_aprl_st,
+		    c.curspn_aprl_dt,
+		    f.faci_nm,
+		    c.emp_id,
+		    e.emp_nm,
+		    c.tcr_id,
+		    c.curspn_curs_num
+		from faci f right join curspn c on f.faci_no = c.faci_no
+		left join emp e on c.tcr_id = e.emp_id
+		where curspn_no = #{curspnNo}) A, INTEATTCH I
+		WHERE A.CURSPN_NO = I.INTEATTCH_NO
+	</select>
+	
+	
+	<!-- [교원] 내강의 계획서 제출 취소하기 -->
+	<update id="deleteCurspn" parameterType="String">
+		UPDATE curspn
+		SET curspn_aprl_st = '취소'
+		WHERE curspn_no = #{curspnNo}
+	</update>
+	
+	<!-- [직원] 전체 강의계획서 리스트 가져오기 -->
+	<select id="selectPnAllList" parameterType="searchInfoVO" resultType="lecturePlanVO">
+		<![CDATA[
+		select distinct A.* from(
+		SELECT
+		    C.CURSPN_NO,
+		    C.CURSPN_CURS_NM,
+		    C.CURSPN_RG_DT,
+		    C.CURSPN_APRL_ST,
+		    I.ATTCH_PATH,
+		    c.emp_id
+		FROM CURSPN C LEFT JOIN INTEATTCH I
+		ON C.CURSPN_NO = I.INTEATTCH_NO
+		WHERE C.CURSPN_NO NOT IN (SELECT CURSPN_NO FROM CURS)
+		) A, curspn c
+		WHERE (A.curspn_no = c.curspn_no or A.emp_id = #{tcrId})
+		]]>
+	   	<!-- 계획번호로 검색 -->
+		<if test='type=="N" and keyword!=null '>
+		<![CDATA[
+			AND A.curspn_no LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>
+	   	<!-- 제목으로 검색 -->
+		<if test='type=="T" and keyword!=null '>
+		<![CDATA[
+			AND A.curspn_curs_nm LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>
+	   	<!-- 신청상태로 검색 -->
+		<if test='type=="S" and keyword!=null '>
+		<![CDATA[
+			AND A.curspn_aprl_st LIKE '%' ||  #{keyword} || '%'
+		]]>
+		</if>		
+		ORDER BY A.CURSPN_RG_DT DESC, A.CURSPN_APRL_ST DESC
+	</select>
+	
+	<!-- [직원] 강의 등록 -->
+	<insert id="insertCurs" parameterType="cursVO">
+		<selectKey keyProperty="cursNo" resultType="java.lang.String" order="AFTER">
+			SELECT 'CURS' || LPAD(SEQ_CURS.CURRVAL,5,0) FROM DUAL
+		</selectKey>	
+		<![CDATA[
+		INSERT INTO curs (
+		    curs_no,
+		    curs_nm,
+		    curs_su_num,
+		    curs_stt_dt,
+		    curs_end_dt,
+		    curseva_scr,
+		    sub_no,
+		    curs_su_pri,
+		    faci_nm,
+		    curspn_no
+		) VALUES (
+		    ('CURS' || LPAD(SEQ_CURS.NEXTVAL,5,0)),
+		    #{cursNm},
+		    #{cursSuNum},
+		    #{cursSttDt},
+		    #{cursEndDt},
+		    0,
+		    #{subNo},
+		    #{cursSuPri},
+		    #{faciNm},
+		    #{curspnNo}
+		)
+		]]>		
+	</insert>
+	
+	<!-- [직원] 강의 시간 상세 등록 (+강의 등록시 함께 이루어짐) -->
+	<insert id="insertCursTM" parameterType="cursVO">
+		<![CDATA[
+		INSERT INTO curstmdtl (
+		    curs_day,
+		    curs_no,
+		    curs_stt_hh,
+		    curs_stt_mm,
+		    curs_end_hh,
+		    curs_end_mm
+		) VALUES (
+		    #{cursDay},
+		    #{cursNo},
+		    #{cursSttHh},
+		    #{cursSttMm},
+		    #{cursEndHh},
+		    #{cursEndMm}
+		)
+		]]>
+	</insert>
+	
+	<!-- [직원] 강의 썸네일 정보 등록 -->
+	<insert id="insertThumbnail" parameterType="kr.or.arthakdang.crelecture.domain.InteattchVO">
+		<selectKey keyProperty="inteattchNo" resultType="java.lang.String" order="BEFORE">
+			SELECT 'CURS' || LPAD(SEQ_CURS.CURRVAL,5,0) FROM DUAL
+		</selectKey>
+		<![CDATA[
+		INSERT INTO inteattch (
+		    inteattch_no,
+		    inteattch_od,
+		    attch_path,
+		    attch_nm,
+		    attch_std_nm,
+		    attch_ext,
+		    attch_sz,
+		    attch_rg_dt,
+		    attch_md_dt,
+		    rg_mem_id,
+		    md_mem_id
+		) VALUES (
+		    #{inteattchNo},
+		    #{inteattchOd},
+		    #{attchPath},
+		    #{attchNm},
+		    #{attchStdNm},
+		    #{attchExt},
+		    #{attchSz},
+		    sysdate,
+		    sysdate,
+		    #{rgMemId},
+		    #{mdMemId}
+		)
+		]]>
+	</insert>
+	
+	<!-- [직원] 폼 작성시, 승인된 강의 계획서 리스트 가져오기 -->
+	<select id="selectOkPnVO" parameterType="String" resultType="lecturePlanVO">
+		SELECT
+		    C.CURSPN_NO,
+		    F.FACI_NM,
+		    C.CURSPN_CURS_NM,
+		    C.CURSPN_CURS_NUM,
+		    C.TCR_ID
+		FROM CURSPN C LEFT JOIN FACI F
+		ON C.FACI_NO = F.FACI_NO
+		WHERE c.curspn_no = #{pnNo}
+	</select>
+	
+	<!-- [직원] 폼 작성시, 번호 가져오기 -->
+	<select id="selectPnNo" resultType="lecturePlanVO">
+		select curspn_no from curspn 
+		where CURSPN_APRL_ST = '승인완료' 
+		and CURSPN_NO NOT IN (SELECT CURSPN_NO  FROM CURS)
+		and emp_id is not null
+		and curspn_aprl_dt is not null
+	</select>
+	
+	<!-- [직원] 폼 작성시 교원 과목 가져오기 -->
+	<select id="selectSubject" parameterType="String" resultType="tcrDtlVO">
+		SELECT T.TCR_IC_SUB, T.TCR_SU_NUM, S.SUB_NO
+		FROM TCRDTL T, SUB S
+		WHERE T.TCR_IC_SUB = S.SUB_NM
+		AND TCR_ID = #{tcrId}	
+	</select>
+	
+	<!-- [교원] 수정 -->
+	<update id="updateCurspn" parameterType="lecturePlanVO">
+		update curspn
+		set curspn_curs_nm = #{curspnCursNm}
+		, curspn_cnt = #{curspnCnt}
+		, curspn_curs_num = #{curspnCursNum}
+		where curspn_no = #{curspnNo}
+		and curspn_aprl_st = '승인대기'	
+	</update>
+	
+	<!-- 시범 버튼 하드코딩됨 -->
+	<update id="updateJava" >
+		update curspn
+		set curspn_aprl_dt = sysdate
+		, curspn_aprl_st = '승인완료'
+		, emp_id = 'employee'
+		where curspn_no = 'PN00101'
+	</update>
+	
+</mapper>

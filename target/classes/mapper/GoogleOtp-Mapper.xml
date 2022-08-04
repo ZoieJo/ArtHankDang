@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.test.mapper.OtpMapper">
+<insert id="insertKey" parameterType="kr.or.arthakdang.mapper.GoogleOTPMapper">
+insert into users_key (userid, secret_key) values (#{userid}, #{secretKey})
+</insert>
+<select id="selectKey" parameterType="String" resultType="String">
+select secret_key from users_key where userid=#{userid}
+</select>
+<select id="checkKey" parameterType="String" resultType="int">
+select count(secret_key) from users_key where userid=#{userid}
+</select>
+</mapper>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.EmployeeManagementMapper">
+	<insert id="joinEmployee" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		insert all
+		into mem (mem_id, mem_pw, mem_cmcd, mem_wid_wn)
+		values (#{empId}, #{empPw}, #{empCmcd}, 'N')
+		into emp (emp_id, emp_nm, emp_ph_no, emp_rrn, emp_email, emp_addr, emp_addr_dtl, emp_post_no, emp_et_dt, emp_cmcd, emp_posi_nm, emp_dep_nm)
+		values (#{empId}, #{empNm}, #{empPhNo}, #{empRrn}, #{empEmail}, #{empAddr}, #{empAddrDtl}, #{empPostNo}, sysdate, #{empCmcd}, 'POSI06', #{empDepNm})
+		into auth (auth_nm, mem_id)
+		values ('ROLE_EMPLOYEE', #{empId})
+		select * from dual
+	</insert>
+	
+	<select id="selectSeq" resultType="String">
+	select lpad(memid_seq.nextval, 4, 0) from dual
+</select>
+	
+	<insert id="joinTeacher" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		insert all
+		into mem (mem_id, mem_pw, mem_cmcd, mem_wid_wn)
+		values (#{empId}, #{empPw}, #{empCmcd}, 'N')
+		into emp (emp_id, emp_nm, emp_ph_no, emp_rrn, emp_email, emp_addr, emp_addr_dtl, emp_post_no, emp_et_dt, emp_cmcd, emp_posi_nm, emp_dep_nm)
+		values (#{empId}, #{empNm}, #{empPhNo}, #{empRrn}, #{empEmail}, #{empAddr}, #{empAddrDtl}, #{empPostNo}, sysdate, #{empCmcd}, 'POSI06', #{empDepNm})
+		into auth (auth_nm, mem_id)
+		values ('ROLE_TEACHER', #{empId})
+		into tcrdtl (tcr_su_num, tcr_ic_sub, tcr_id)
+		values (40, #{tcrIcSub}, #{empId})
+		select * from dual
+	</insert>
+	
+	<select id="viewEmployeeId" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO" resultType="string">
+		select emp_id
+		from emp
+		where emp_nm = #{empNm}
+		and emp_ph_no = #{empPhNo}
+	</select>
+	
+	<select id="employeeList" resultType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		select emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no, emp_dep_nm, emp_posi_nm
+		from emp
+	</select>
+	<select id="selectEmployeeTotalCnt" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO" resultType="int">
+		select count(*) from emp
+	</select>
+	
+	<select id="employeeNameCnt" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeListPageCountVO" resultType="int">
+		select count(*) from emp
+		where emp_nm like '%' ||  #{empNm} || '%'
+	</select>
+	
+	<select id="employeePhNoCnt" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeListPageCountVO" resultType="int">
+		select count(*) from emp
+		where emp_ph_no like '%' ||  #{empPhNo} || '%'
+	</select>
+	<select id="selectEmployeePage" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeListPageCountVO" resultType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+			<![CDATA[
+			select  emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no, emp_dep_nm, emp_posi_nm from
+	       (select rownum as myrownum,  emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no, emp_dep_nm, emp_posi_nm from emp
+	          where rownum <= #{pageNum} * #{pageSize})
+	      where myrownum > (#{pageNum} -1) * #{pageSize}
+	      order by emp_id desc
+	        ]]> 
+	</select>
+	
+	<select id="selectOneEmployee" parameterType="String" resultType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		SELECT emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no FROM EMP WHERE EMP_ID=#{empId}
+	</select>
+	
+	<select id="selectNameEmployee" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeListPageCountVO" resultType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		<![CDATA[
+			select  emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no, emp_dep_nm, emp_posi_nm from
+	       (select rownum as myrownum,  emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no, emp_dep_nm, emp_posi_nm from emp
+	          where rownum <= #{pageNum} * #{pageSize}
+	          and emp_nm like '%' ||  #{empNm} || '%')
+	      where myrownum > (#{pageNum} -1) * #{pageSize}
+	      and emp_nm like '%' ||  #{empNm} || '%'
+	      order by emp_id desc
+	        ]]> 
+	</select>
+	
+	<select id="selectPhNoEmployee" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeListPageCountVO" resultType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		<![CDATA[
+			select  emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no, emp_dep_nm, emp_posi_nm from
+	       (select rownum as myrownum,  emp_id, emp_nm, emp_rrn, emp_email, emp_et_dt, emp_ph_no, emp_addr, emp_addr_dtl, emp_post_no, emp_dep_nm, emp_posi_nm from emp
+	          where rownum <= #{pageNum} * #{pageSize}
+	          and emp_ph_no like '%' ||  #{empPhNo} || '%')
+	      where myrownum > (#{pageNum} -1) * #{pageSize}
+	      and emp_ph_no like '%' ||  #{empPhNo} || '%'
+	      order by emp_id desc
+	        ]]> 
+	</select>
+	
+	<update id="updateEmployeePw" parameterType="kr.or.arthakdang.domain.MemberVO">
+		update mem
+		set mem_pw = #{memPw}
+		where mem_id = #{memId}
+	</update>
+	
+	<update id="updateEmployeeInfo" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		update emp
+		set emp_nm = #{empNm}
+		, emp_ph_no = #{empPhNo}
+		, emp_addr = #{empAddr}
+		, emp_addr_Dtl = #{empAddrDtl}
+		, emp_post_no = #{empPostNo}
+		, emp_email = #{empEmail}
+		where emp_id = #{empId}
+	</update>
+	
+	
+	<update id="deleteEmployee" parameterType="kr.or.arthakdang.employeemanagement.domain.EmployeeVO">
+		update mem
+		set mem_wid_wn = 'Y'
+		where mem_id = #{empId}
+	</update>
+	
+	<select id="subList" resultType="kr.or.arthakdang.employeemanagement.domain.SubVO">
+	 select sub_no, sub_nm, sub_del_wn, sub_cre_dt
+        from sub
+        where sub_del_wn = 'N'
+	</select>
+	<select id="employeeInfoCheck">
+	SELECT e.EMP_ADDR||e.EMP_ADDR_DTL||e.EMP_POST_NO FROM EMP e WHERE e.EMP_ID = #{empId}
+	</select>
+</mapper>

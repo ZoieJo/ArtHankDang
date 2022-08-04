@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.NoticeMapper">
+
+	<!-- 	페이징할 때 !!! -->
+	<select id="selectBoardPage" parameterType="pageCondDTO" resultType="noticeVO">
+	<![CDATA[
+  		select 
+		BD_NO, BD_TL, BD_WTR, BD_WT_DT 
+		from 
+       	(select 
+       	rownum as myrownum, BD_NO, BD_TL, BD_CNT, BD_WTR, BD_WT_DT  
+       	from 
+       	(select * from v_board  
+  		where bd_del='N' order by bd_no desc) 
+  		where BD_NO like 'nte%'
+  		and rownum <= #{pageNum} * #{pageSize})
+  		where myrownum > (#{pageNum} -1) * #{pageSize}
+    ]]>  
+	</select>
+	
+	<!-- 	보드 리스트 전체 갯수 / 페이징할 때 쓸 쿼리문-->
+	<select id="selectBoardListCnt" resultType="int">
+	<![CDATA[
+		select count(*) from bd where BD_NO like 'nte%' AND BD_DEL = 'N'
+	]]>
+	</select>
+	
+	<!-- 	보드 리스트 검색해서 하나만 출력 -->
+	<select id="selectBoard" parameterType="String" resultType="noticeVO">
+		select * from bd where bd_no = #{bdNo} AND BD_DEL = 'N'
+	</select>
+
+<!-- 	게시글 추가 -->
+	<insert id="insertNotice" parameterType="noticeVO">
+		insert into bd(BD_NO, BD_CMCD, BD_TL, BD_CNT, BD_WTR, BD_WT_DT)
+		values (('nte' || LPAD(seq_bd.nextval, 5, '0')),'04',#{bdTL},#{bdCNT},#{bdWTR},SYSDATE)	
+	</insert>
+
+	<!-- 게시글 삭제 -->
+	<update id="updateNotice" parameterType="noticeVO">
+		update bd set
+			   BD_TL = #{bdTL},
+			   BD_CNT = #{bdCNT},
+			   BD_MD_DT = sysdate
+			   where BD_NO = #{bdNo} 
+	</update>
+	
+<!-- 	parameterType = > 넣어주는 거 / resultType => 내보내는 거 -->
+	<update id="deleteNotice" parameterType="String">
+		update bd set bd_del = 'Y' where BD_NO = #{bdNo} 
+	</update>
+	
+
+</mapper>

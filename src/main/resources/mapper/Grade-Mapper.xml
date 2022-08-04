@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.GradeManagementMapper">
+<insert id="insertGrade" parameterType="gradeDTO">
+INSERT INTO GRD(
+				GRD_SCR,
+				GRD_WRT,
+				GRD_NO,
+				CURS_NO,
+				STU_ID,
+				GRD_CMT
+				) VALUES (
+				#{grdScr},
+				#{grdWrt},
+				('GRD'||TO_CHAR(SYSDATE, 'YYYYMMDD')||LPAD(SEQ_GRD.NEXTVAL, 4, '0')),
+				#{cursNo},
+				#{stuId},
+				#{grdCmt}
+				)
+</insert>
+<update id="updateGrade" parameterType="gradeDTO">
+UPDATE GRD 
+SET GRD_SCR=#{grdScr}, 
+	GRD_WRT=#{grdWrt},
+	GRD_CMT=#{grdCmt}
+WHERE CURS_NO=#{cursNo} AND 
+	STU_ID=#{stuId}
+</update>
+
+
+<delete id="deleteGrade" parameterType="String">
+DELETE FROM GRD
+WHERE CURS_NO=#{cursNo} AND 
+	STU_ID=#{stuId}
+</delete>
+
+<select id="selectOneGrade" parameterType="String" resultType="gradeDTO">
+SELECT * FROM GRD WHERE GRD_NO=#{grdNo}
+</select>
+
+<select id="selectOneGradeInfoByStudentAndClass" parameterType="gradeDTO" resultType="gradeInfoVO">
+SELECT g.STU_ID, t.STU_NM, g.GRD_SCR, g.GRD_CMT, g.GRD_WRT, g.CURS_NO, g.GRD_NO, c.CURS_NM, (SELECT count(STU_ID) FROM SU s WHERE s.CURS_NO=g.CURS_NO GROUP BY CURS_NO) AS grd_total, 
+								x.grd_rank
+								FROM GRD g INNER JOIN STU t ON t.STU_ID=g.STU_ID 
+								INNER JOIN CURS c ON c.CURS_NO=g.CURS_NO 
+								LEFT OUTER JOIN (SELECT rownum AS grd_rank, STU_ID FROM (SELECT d.stu_id FROM grd d ORDER BY grd_scr desc) z ) x ON x.stu_id = g.stu_id 
+								WHERE g.CURS_NO=#{cursNo} AND g.STU_ID=#{stuId}
+</select>
+
+<select id="selectAllGradeInfoListByClass" parameterType="String" resultType="gradeInfoVO">
+SELECT g.STU_ID, t.STU_NM, g.GRD_SCR, g.GRD_CMT, g.GRD_WRT, g.CURS_NO, g.GRD_NO, c.CURS_NM, (SELECT count(STU_ID) FROM SU s WHERE s.CURS_NO=g.CURS_NO GROUP BY CURS_NO) AS grd_total, 
+								x.grd_rank
+								FROM GRD g INNER JOIN STU t ON t.STU_ID=g.STU_ID 
+								INNER JOIN CURS c ON c.CURS_NO=g.CURS_NO 
+								LEFT OUTER JOIN (SELECT rownum AS grd_rank, STU_ID FROM (SELECT d.stu_id FROM grd d ORDER BY grd_scr desc) z ) x ON x.stu_id = g.stu_id 
+								WHERE g.CURS_NO=#{cursNo}
+</select>
+
+<select id="selectAllGradeListByStudent" parameterType="String" resultType="gradeDTO">
+SELECT * FROM GRD WHERE STU_ID=#{stuId}
+</select>
+
+<select id="selectStudentListToInsert" parameterType="String" resultType="kr.or.arthakdang.studentmanagement.domain.StudentVO">
+SELECT s.stu_id, t.STU_NM FROM SU s LEFT OUTER JOIN grd g ON g.STU_ID =s.STU_ID
+							INNER JOIN stu t ON t.STU_ID=s.STU_ID 
+WHERE g.GRD_SCR IS NULL AND s.CURS_NO=#{cursNo}
+</select>
+<select id="selectAvgGradeByClass" parameterType="String" resultType="String">
+SELECT AVG(g.GRD_SCR)FROM GRD g WHERE g.CURS_NO=#{cursNo}
+</select>
+
+
+
+</mapper>

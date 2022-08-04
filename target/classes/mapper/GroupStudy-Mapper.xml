@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.GroupStudyMapper">
+
+	<resultMap id="GroupStudyVO" type="kr.or.arthakdang.groupstudy.domain.GroupStudyVO">
+	   <id property="gpstyNo" column="gpsty_no" />
+	   <result property="dbCmcd" column="bd_cmcd" />
+	   <result property="gpstyCreDt" column="gpsty_cre_dt" />
+	   <result property="gpstyNm" column="gpsty_nm" />
+	   <result property="gpstyJnNum" column="gpsty_jn_num" />
+	   <result property="gpstyHtNm" column="gpsty_ht_nm" />
+	   <result property="memId" column="mem_id" />
+	   <result property="gpstyAttchNo" column="gpsty_attch_no" />
+	        <association property="inteattchVO"  javaType="kr.or.arthakdang.groupstudy.domain.InteattchVO" >
+	             <id property="inteattchNo"  column="inteattch_no" />
+	             <result property="inteattchOd"  column="inteattch_od" />
+	             <result property="attchPath"  column="attch_path" />
+	             <result property="attchNm"  column="attch_nm" />
+	             <result property="attchStdNm"  column="attch_std_nm" />
+	             <result property="attchExt"  column="attch_ext" />
+	             <result property="attchSz"  column="attch_sz" />
+	             <result property="attchRgDt"  column="attch_rg_dt" />
+	             <result property="attchMdDt"  column="attch_md_dt" />
+	             <result property="rgMemId"  column="rg_mem_id" />
+	             <result property="mdMemId"  column="md_mem_id" />
+	        </association>
+	        <collection property="groupStudyMemInfoVO" javaType="List" ofType="kr.or.arthakdang.groupstudy.domain.GroupStudyMemInfoVO">
+	        	<id property="gpstyNo" column="i_gpsty_no" />
+	        	<result property="jnDt" column="jn_dt"/>
+	        	<result property="memId" column="i_mem_id"/>
+	        </collection>
+	</resultMap>
+	<select id="subjectList" resultType="kr.or.arthakdang.groupstudy.domain.SubjectVO">
+		select sub_no, sub_nm
+		from sub
+	</select>
+	
+	<insert id="createGroupStudy" parameterType="kr.or.arthakdang.groupstudy.domain.GroupStudyVO">
+		<selectKey order="BEFORE" keyProperty="gpstyNo" resultType="string">
+			SELECT GROUPSTUDY_SEQ.NEXTVAL
+       		FROM DUAL
+		</selectKey>
+		insert all
+		into gpsty(gpsty_no, bd_cmcd, gpsty_cre_dt, gpsty_nm,
+		mem_id, gpsty_jn_num, gpsty_ht_nm, gpsty_attch_no)
+		values (#{gpstyNo}, '03', sysdate, #{gpstyNm},
+		#{memId}, 1, #{gpstyHtNm}, #{gpstyNo})
+		into inteattch(inteattch_no, inteattch_od, attch_path, attch_nm, attch_std_nm,
+		attch_ext, attch_sz, attch_rg_dt, attch_md_dt, rg_mem_id, md_mem_id)
+		values (#{gpstyNo}, #{inteattchVO.inteattchOd}, #{inteattchVO.attchPath}, #{inteattchVO.attchNm}, #{inteattchVO.attchStdNm},
+		#{inteattchVO.attchExt}, #{inteattchVO.attchSz}, sysdate, sysdate, #{memId}, #{memId})
+		into gpstymeminfo(jn_dt, gpsty_no, mem_id)
+		values (sysdate, #{gpstyNo}, #{memId})
+		select * from dual
+	</insert>
+	
+	<select id="groupStudyAndAttchList" resultMap="GroupStudyVO">
+      select a.gpsty_no, a.bd_cmcd, a.gpsty_cre_dt, a.gpsty_nm,
+      a.gpsty_jn_num, a.gpsty_ht_nm, a.mem_id, a.gpsty_attch_no,
+	  b.inteattch_no, b.inteattch_od, b.attch_path, b.attch_nm,
+	  b.attch_std_nm, b.attch_ext, b.attch_sz, b.attch_rg_dt,
+	  b.attch_md_dt, b.rg_mem_id, b.md_mem_id
+	  from gpsty a
+	  left outer join inteattch b
+	  on a.gpsty_attch_no = b.inteattch_no
+	  where b.attch_ext = 'jpg'
+      OR b.attch_ext = 'png'
+      or b.attch_ext = 'PNG'
+	</select>
+	
+	<insert id="joinGroupStudy" parameterType="kr.or.arthakdang.groupstudy.domain.GroupStudyMemInfoVO">
+		insert into 
+		gpstymeminfo(gpsty_no, mem_id, jn_dt)
+		values(#{gpstyNo}, #{memId}, sysdate)
+	</insert>
+	
+	<update id="groupStudyPlusOne" parameterType="kr.or.arthakdang.groupstudy.domain.GroupStudyMemInfoVO">
+		 update gpsty
+		 set gpsty_jn_num = gpsty_jn_num+1
+		 where gpsty_no = #{gpstyNo}
+	</update>
+	
+	<update id="groupStudyMinusOne" parameterType="kr.or.arthakdang.groupstudy.domain.GroupStudyVO">
+ 		update gpsty
+		 set gpsty_jn_num = gpsty_jn_num-1
+		 where gpsty_no = #{gpstyNo}
+	</update>
+	
+<!-- 	<select id="includeGroupStudyList" resultMap="GroupStudyVO" parameterType="String"> -->
+<!-- 	select a.gpsty_no, a.bd_cmcd, a.gpsty_cre_dt, a.gpsty_nm, -->
+<!--       a.gpsty_jn_num, a.gpsty_ht_nm, a.mem_id, a.gpsty_attch_no, -->
+<!-- 	  b.jn_dt, b.gpsty_no as i_gpsty_no, b.mem_id as i_mem_id -->
+<!-- 	  from gpsty a -->
+<!-- 	  full outer join gpstymeminfo b -->
+<!-- 	  on a.gpsty_no = b.gpsty_no -->
+<!--       where b.mem_id = #{memId} -->
+<!-- 	</select> -->
+	
+	<select id="selectGroupStudyNo" resultType="kr.or.arthakdang.groupstudy.domain.GroupStudyMemInfoVO">
+		select * from gpstymeminfo
+      where mem_id = #{memId}
+	</select>
+	
+	<update id="outGroupStudy" parameterType="kr.or.arthakdang.groupstudy.domain.GroupStudyVO">
+		delete from gpstymeminfo
+		where mem_id = #{memId}
+		and gpsty_no = #{gpstyNo}
+	</update>
+	
+	<update id="deleteAttchImage" parameterType="kr.or.arthakdang.groupstudy.domain.GroupStudyVO">
+		delete from inteattch
+		where inteattch_no = #{gpstyAttchNo}
+	</update>
+	
+	<insert id="uploadFile" parameterType="kr.or.arthakdang.groupstudy.domain.InteattchVO">
+	insert into inteattch(inteattch_no, inteattch_od, attch_path, attch_nm
+	, attch_std_nm, attch_ext, attch_sz, attch_rg_dt, attch_md_dt, rg_mem_id, md_mem_id)
+	values(#{inteattchNo}, ATTCH_SEQ.nextval, #{attchPath}, #{attchNm}, #{attchStdNm}, #{attchExt},
+	#{attchSz}, sysdate, sysdate, #{rgMemId}, #{mdMemId})
+	</insert>
+	
+	<select id="uploadFileList" parameterType="kr.or.arthakdang.groupstudy.domain.InteattchVO">
+      select * from inteattch
+      where inteattch_no = #{inteattchNo}
+      and inteattch_od >= 101
+	</select>
+</mapper>

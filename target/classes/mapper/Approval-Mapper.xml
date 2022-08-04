@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.ApprovalMapper">
+
+	<resultMap type="usdeaprllnVO" id="usdeaprllnMap">
+		<id property="usdeaprllnNo" column="USDEAPRLLN_NO"/>
+		<result property="usdeaprllnTl" column="USDEAPRLLN_TL"/>
+		<result property="memId" column="MEM_ID"/>
+		<collection property="usdeaprllndtlList" resultMap="usdeaprllndtlMap"></collection>
+		<collection property="usdeaprlrefList" resultMap="usdeaprlrefMap"></collection>
+	</resultMap>
+	
+	<resultMap type="usdeaprllndtlVO" id="usdeaprllndtlMap">
+		<result property="aprlOd" column="APRL_OD"/>
+		<result property="aprlMemId" column="APRL_MEM_ID"/>
+		<result property="aprlTpCd" column="APRL_TP_CD"/>
+		<result property="empNm" column="EMP_NM"/>
+		<collection property="employeeInfo" resultMap="employeeMap"></collection>
+	</resultMap>
+	
+	<resultMap type="usdeaprlreflnVO" id="usdeaprlrefMap">
+		<result property="refOd" column="REF_OD"></result>
+		<result property="refMemId" column="REF_MEM_ID"></result>
+	</resultMap>
+	
+	<resultMap type="employeeVO" id="employeeMap">
+		<result property="empPosiNm" column="EMP_POSI_NM"></result>
+	</resultMap>
+	
+	<select id="empList" resultType="employeeVO" parameterType="String">
+		select emp_nm, emp_id, emp_cmcd, emp_dep_nm
+		from emp
+		where not emp_id = #{emp_id}
+	</select>
+	
+	<select id="userInfo" resultType="employeeVO" parameterType="String">
+		SELECT EMP_NM, EMP_ID, EMP_EMAIL, EMP_DEP_NM, CMCD2.CMCD_VU AS EMP_POSI_NM, EMP_PH_NO, CMCD1.CMCD_VU AS EMP_CMCD
+		FROM EMP INNER JOIN CMCD CMCD1 ON (EMP.EMP_DEP_NM = CMCD1.CMCD_NM)
+        		 INNER JOIN CMCD CMCD2 ON (EMP.EMP_POSI_NM = CMCD2.CMCD_NM)
+		WHERE EMP_ID = #{empId}
+	</select>
+	
+	<insert id="insertUsdeaprlln" parameterType="usdeaprllnVO">
+		INSERT INTO USDEAPRLLN(USDEAPRLLN_NO, MEM_ID, USDEAPRLLN_TL)
+		VALUES ('APRLLN'||LPAD(SEQ_APRLLN.NEXTVAL,5,'0'),#{memId},#{usdeaprllnTl})
+	</insert>
+	
+	<insert id="insertUsdeaprllndtl" parameterType="map">
+		<selectKey keyProperty="aprllnNo" resultType="String" order="BEFORE">
+			select max(usdeaprlln_no)
+			from usdeaprlln
+			where mem_id = #{memId}
+		</selectKey>
+		<foreach collection="usdeaprllndtl" item="vo" index="index" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+		INTO USDEAPRLLNDTL(USDEAPRLLN_NO, APRL_OD, APRL_MEM_ID, APRL_TP_CD)
+		VALUES (#{aprllnNo},#{vo.aprlOd},#{vo.aprlMemId},#{vo.aprlTpCd})
+		</foreach>
+	</insert>
+	
+	<insert id="insertUsdeaprlrefln" parameterType="map">
+		<selectKey keyProperty="aprllnNo" resultType="String" order="BEFORE">
+			select max(usdeaprlln_no)
+			from usdeaprlln
+			where mem_id = #{memId}
+		</selectKey>
+		<foreach collection="usdeaprlrefln" item="vo" index="index" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+		INTO USDEAPRLREFLN(USDEAPRLLN_NO, REF_OD, REF_MEM_ID)
+		VALUES (#{aprllnNo},#{vo.refOd},#{vo.refMemId})
+		</foreach>
+	</insert>
+	
+	<select id="getAprlln" parameterType="usdeaprllnVO" resultMap="usdeaprllnMap">
+		 SELECT USDEAPRLLN_NO, MEM_ID, USDEAPRLLN_TL, APRL_OD, APRL_MEM_ID, APRL_TP_CD, EMP_NM, EMP_POSI_NM
+ 		 FROM (SELECT LN.USDEAPRLLN_NO, LN.MEM_ID, LN.USDEAPRLLN_TL, DTL.APRL_OD, DTL.APRL_MEM_ID, DTL.APRL_TP_CD, EMP.EMP_NM, EMP.EMP_POSI_NM
+       		   FROM USDEAPRLLN LN INNER JOIN USDEAPRLLNDTL DTL ON (LN.USDEAPRLLN_NO = DTL.USDEAPRLLN_NO)
+               					  INNER JOIN (SELECT EMP_ID, EMP_NM, CMCD_VU AS EMP_POSI_NM 
+                                      		  FROM EMP INNER JOIN CMCD ON (EMP.EMP_POSI_NM = CMCD.CMCD_NM)) EMP ON (dtl.aprl_mem_id = EMP.EMP_ID) 
+			   WHERE NOT DTL.APRL_MEM_ID = #{memId} 
+			   AND LN.USDEAPRLLN_NO = #{usdeaprllnNo}
+			   ORDER BY dtl.aprl_od)
+		
+		UNION ALL 
+		
+		SELECT LN.USDEAPRLLN_NO, LN.MEM_ID, LN.USDEAPRLLN_TL,  REFLN.REF_OD AS APRL_OD, REFLN.REF_MEM_ID APRL_MEM_ID, REFLN.APRL_TP_CD, EMP.EMP_NM, EMP.EMP_POSI_NM  
+		FROM USDEAPRLLN LN INNER JOIN USDEAPRLREFLN REFLN ON (LN.USDEAPRLLN_NO = REFLN.USDEAPRLLN_NO) 
+		                INNER JOIN (SELECT EMP_ID, EMP_NM, CMCD_VU AS EMP_POSI_NM
+		                            FROM EMP INNER JOIN CMCD ON (EMP.EMP_POSI_NM = CMCD.CMCD_NM)) EMP ON (REFLN.REF_MEM_ID = EMP.EMP_ID)
+		WHERE LN.USDEAPRLLN_NO = #{usdeaprllnNo}
+	</select>
+	
+	<select id="getAprllnNo" parameterType="String" resultType="usdeaprllnVO">
+		SELECT USDEAPRLLN_NO, USDEAPRLLN_TL
+		FROM USDEAPRLLN
+		WHERE MEM_ID = #{memId}
+	</select>
+	
+	<delete id="deleteAprlln" parameterType="String">
+		DELETE FROM USDEAPRLLN WHERE USDEAPRLLN_NO = #{usdeaprllnNo}
+	</delete>
+	
+	<delete id="deleteAprllndtl" parameterType="String">
+		DELETE FROM USDEAPRLLNDTL WHERE USDEAPRLLN_NO = #{usdeaprllnNo}
+	</delete>
+	
+	<delete id="deleteAprlrefln" parameterType="String">
+		DELETE FROM USDEAPRLREFLN WHERE USDEAPRLLN_NO = #{usdeaprllnNo}
+	</delete>
+	
+	<select id="getEmpPosition" parameterType="String" resultType="String">
+		SELECT CMCD_VU AS EMP_POSI_NM
+		FROM EMP INNER JOIN CMCD ON (EMP.EMP_POSI_NM = CMCD.CMCD_NM)
+		WHERE EMP_ID = #{empId}
+	</select>
+	
+	
+	<insert id="saveAprlTemp" parameterType="aprldocVO">
+		
+		INSERT INTO APRLDOC(APRLDOC_NO, APRLDOC_TL, APRLDOC_CNT, MEM_ID, APRL_ST_CD, APRLDOC_WT_DT, DOC_ST_CD, REF_DOC) 
+		VALUES ('MAN'||TO_CHAR(SYSDATE, 'yyyy')||LPAD(SEQ_APRLDOC.NEXTVAL,5,'0'),#{aprldocTl}, #{aprldocCnt}, #{memId}, '01', SYSDATE, '01', #{refDoc})
+	</insert>
+	
+	<update id="updateAprlTemp" parameterType="aprldocVO">
+		update APRLDOC
+		set APRLDOC_TL = #{aprldocTl}, 
+		    APRLDOC_CNT = #{aprldocCnt},  
+		    APRLDOC_WT_DT = SYSDATE,  
+		    REF_DOC = #{refDoc}
+		where aprldoc_no = #{aprldocNo}
+	</update>
+	
+	<select id="tempAprldocList" parameterType="String" resultType="aprldocVO">
+		select aprldoc_no, aprldoc_tl, aprldoc_wt_dt, aprl_st_cd
+		from aprldoc
+		where doc_st_cd = '01'
+		and mem_id = #{memId}
+	</select>
+	
+	<select id="aprldocInfo" parameterType="String" resultType="aprldocVO">
+		SELECT APRLDOC_NO, APRLDOC_TL, APRLDOC_CNT, MEM_ID, APRLDOC_WT_DT
+		FROM APRLDOC
+		WHERE APRLDOC_NO = #{aprldocNo}
+	</select>
+	
+	<select id="getCurspnList" resultType="curspnVO">
+		select curspn_no, curspn_aprl_st, curspn_curs_nm
+		from curspn
+	</select>
+	
+	<insert id="insertAprldoc" parameterType="aprldocVO">
+		
+		INSERT INTO APRLDOC(APRLDOC_NO, APRLDOC_TL, APRLDOC_CNT, MEM_ID, APRL_ST_CD, APRLDOC_DF_DT, APRLDOC_WT_DT, DOC_ST_CD, REF_DOC)
+		VALUES('MAN'||TO_CHAR(SYSDATE, 'YYYY')||LPAD(SEQ_APRLDOC.NEXTVAL,5,'0'),#{aprldocTl},#{aprldocCnt},#{memId},'03',SYSDATE, SYSDATE, '02', #{refDoc})
+	</insert>
+	
+	<insert id="insertAprlln" parameterType="aprllnVO">
+		<selectKey resultType="string" keyProperty="aprldocNo" order="BEFORE">
+			select max(aprldoc_no) from aprldoc
+		</selectKey>
+		insert into aprlln(aprldoc_no, aprl_od, mem_id, aprl_tp_cd, aprl_st_cd, aprl_dt, aprl_cnt)
+		values (#{aprldocNo},#{aprlOd},#{memId},#{aprlTpCd},#{aprlStCd}, sysdate, #{aprlCnt})
+	</insert>
+	
+	<select id="getSendboxList" parameterType="String" resultType="aprldocVO">
+		select aprldoc_no, aprldoc_tl, aprldoc_df_dt, doc_st_cd
+		from aprldoc
+		where mem_id = #{memId}
+		and not doc_st_cd = '01'
+		order by doc_st_cd
+	</select>
+	
+	
+	
+</mapper>
+

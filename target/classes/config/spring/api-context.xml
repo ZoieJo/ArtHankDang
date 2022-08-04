@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<bean id="applicationNaverSENS" class="kr.or.arthakdang.sens.api.application.ApplicationNaverSENS">
+		<property name="hostNameUrl" value="${sms.hostNameUrl}" />
+		<property name="requestUrl" value="${sms.requestUrl}" />
+		<property name="requestUrlType" value="${sms.requestUrlType}" />
+		<property name="accessKey" value="${sms.accessKey}" />
+		<property name="secretKey" value="${sms.secretKey}" />
+		<property name="serviceId" value="${sms.serviceId}" />
+		<property name="method" value="${sms.method}" />
+		<property name="sendFrom" value="${sms.sendFrom}" />
+	</bean>
+
+</beans>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.arthakdang.mapper.SignupMapper">
+
+	<resultMap type="orderVO" id="orderMap">
+		<id property="ordNo" column="ORD_NO" />
+		<result property="stuId" column="STU_ID"/>
+		<result property="ordDt" column="ORD_DT"/>
+		<result property="tolAmt" column="TOL_AMT"/>
+		<collection property="suOrdDtl" resultMap="orderDetailMap"/>
+	</resultMap>
+	
+	<resultMap type="orderDetailVO" id="orderDetailMap">
+		<result property="ordNo" column="ord_no"/>
+		<result property="cursNo" column="curs_no"/>
+		<result property="ordAmt" column="ord_amt"/>
+	</resultMap>
+	
+	<resultMap type="paymentVO" id="paymentMap">
+		<id property="pymNo" column="pym_no"/>
+		<result property="ordNo" column="ord_no"/>
+		<result property="pymDt" column="pym_dt"/>
+		<result property="pymMtd" column="pym_mtd"/>
+		<result property="pymCmcd" column="pym_cmcd"/>
+		<result property="pymAmt" column="pym_amt"/>
+		<collection property="course" resultMap="courseMap"/>
+		<collection property="stuInfo" resultMap="studentMap"/>
+	</resultMap>
+	
+	<resultMap type="courseVO" id="courseMap">
+		<result property="cursNo" column="curs_no"/>
+		<result property="cursNm" column="curs_nm"/>
+		<result property="cursSuPri" column="curs_su_pri"/>
+	</resultMap>
+	
+	<resultMap type="kr.or.arthakdang.studentmanagement.domain.StudentVO" id="studentMap">
+		<result property="stuId" column="stu_id"/>
+	</resultMap>
+
+	<select id="getCourseList" resultType="courseVO">
+		select * from curs
+	</select>
+
+	<select id="countCourseList" resultType="int" parameterType="cursPageCondDTO">
+		<![CDATA[
+		select count(*)
+		from curs left outer join (select curs_no from su where stu_id=#{memId}) su on (curs.curs_no = su.curs_no)
+		where curs_nm like '%'|| #{keyword} ||'%'
+        and su.curs_no is null
+		and sysdate < curs_stt_dt
+		]]>
+	</select>
+
+	<select id="getCourseListPage" resultType="courseDetailVO" parameterType="cursPageCondDTO">
+	<![CDATA[
+		select myrownum,curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt, curseva_scr, sub_no, curs_su_pri, faci_nm, emp_nm, cart_no, ord_no 
+		from (select myrownum, curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt, curseva_scr, sub_no, curs_su_pri, faci_nm, emp_nm, cart_no, ord_no 
+		      from (select rownum as myrownum, curs.curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt, curseva_scr, sub_no, curs_su_pri, faci_nm, emp_nm, cart.cart_no, ord_no 
+		            from curs inner join (select curspn_no, emp_nm 
+		                                  from curspn inner join emp on (curspn.tcr_id = emp.emp_id))curspn on (curs.curspn_no = curspn.curspn_no)
+		                      left outer join (select cart_no, stu_id, curs_no from cart where stu_id = #{memId}) cart on (curs.curs_no = cart.curs_no) 
+		                      left outer join (select curs_no, stu_id, ord_no from su where stu_id = #{memId}) su on ( curs.curs_no = SU.CURS_NO)
+		            where sysdate < curs_stt_dt
+		            and ord_no is null
+		            order by curs_stt_dt asc)
+		      where myrownum <= #{pageNum}*#{pageSize}
+		      and curs_nm like '%'||#{keyword}||'%')
+		where myrownum > (#{pageNum}-1)*#{pageSize}
+	]]>
+	</select>
+
+	<select id="getCourseDetail" parameterType="String" resultType="courseDetailVO">
+	select curs.curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt, sub_no, curs_su_pri, faci_nm, curs_day, curstmdtl.curs_stt_hh, curstmdtl.curs_end_hh, curstmdtl.curs_stt_mm, curstmdtl.curs_end_mm, emp_nm, curspn_cnt
+	from curs inner join (select curs_no, curs_stt_hh, curs_stt_mm, curs_end_hh, curs_end_mm, cmcd_vu as curs_day
+                      	from curstmdtl inner join (select cmcdgp, cmcd_nm, cmcd_vu
+                                                	from cmcd
+                                               		where cmcdgp = 'DAY_GP_CD') cmcd on (curstmdtl.curs_day= cmcd.cmcd_nm)) curstmdtl on (curs.curs_no = curstmdtl.curs_no)
+          	  inner join (select curspn_no, emp_nm
+                      	  from curspn inner join emp on (curspn.tcr_id = emp.emp_id)) curspn on (curs.curspn_no = curspn.curspn_no)
+              inner join curspn on (curs.curspn_no = curspn.curspn_no)
+	where curs.curs_no = #{cursNo}
+	order by rownum desc
+	</select>
+	
+	<insert id="insertCart" parameterType="cartVO">
+		insert into cart(cart_no, add_dt, curs_no, stu_id) values ('CART'||LPAD(seq_cart.nextval,5,'0'), SYSDATE, #{cursNo},#{stuId})
+	</insert>
+	
+	<select id="checkCart" parameterType="cartVO" resultType="int">
+		select count(*)
+		from cart
+		where 1=1
+		and stu_id = #{stuId}
+		and curs_no = #{cursNo}
+		and st_cmcd = 'N'
+	</select>
+	
+	<select id="showCartCursNo" parameterType="String" resultType="String">
+		select curs_no from cart where stu_id = #{memId} and ST_CMCD = 'N'
+	</select>
+	
+	<select id="showCartCursList" parameterType="cursPageCondDTO" resultType="courseDetailVO">
+	select curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt, curseva_scr, sub_no, curs_su_pri, faci_nm, emp_nm, cart_no, stu_id
+		from (select rownum as myrownum, curs.curs_no, curs_nm, curs_su_num, curs_stt_dt, curs_end_dt, curseva_scr, sub_no, curs_su_pri, faci_nm, emp_nm, cart_no, cart.stu_id
+			  from curs inner join (select curspn_no, emp_nm
+			  						from curspn inner join emp on (curspn.tcr_id = emp.emp_id)) curspn on (curs.curspn_no = curspn.curspn_no)
+			  			inner join cart on (curs.curs_no = cart.curs_no)
+			  where 1=1
+			  and st_cmcd = 'N'
+			  <if test="cursList.size != 0">
+				  and curs.curs_no in 
+			  	<foreach collection="cursList" item="list" open="(" close=")" separator="," >
+			  		#{list}
+			  	</foreach>
+			  </if>
+				  ) 
+	<![CDATA[
+		where sysdate < curs_stt_dt
+		and stu_id = #{memId}
+		order by curs_stt_dt asc
+	]]>
+	</select>
+	
+	<delete id="deleteCursCart" parameterType="String">
+		delete from cart where cart_no = #{cartNo}
+	</delete>
+	
+	<select id="getOrderInfo" resultType="courseDetailVO">
+		select curs_no, curs_nm, curs_su_pri
+		from curs
+		where curs_no in
+		<foreach collection="list" item="cursNo" open="(" close=")" separator=",">
+			#{cursNo}
+		</foreach>
+	</select>
+	
+	<insert id="insertOrder" parameterType="orderVO">
+		INSERT INTO ORD(ORD_NO, STU_ID, ORD_DT, TOL_AMT) VALUES ('ORD'||lpad(seq_ord.nextval, 5, '0'),#{stuId},SYSDATE,#{tolAmt})
+	</insert>
+	
+	<insert id="insertOrderDetail" parameterType="list">
+		<foreach collection="list" item="odv" index="index" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+		into suorddtl(ord_no, curs_no, ord_amt) 
+		values (
+			(select case when max(ord_no) is null then 'ORD00001'
+			else max(ord_no)
+			end
+			from ord
+			where stu_id = #{odv.stuId}), #{odv.cursNo}, #{odv.ordAmt}
+		)
+		</foreach>
+	</insert>
+	
+	<select id="getOrderNo" parameterType="String" resultType="String">
+		select case when max(ord_no) is null then 'ORD00001'
+		else max(ord_no)
+		end
+		from ord
+		where stu_id = #{memId}
+	</select>
+	
+	<delete id="deleteOrder" parameterType="String">
+		delete from ord where ord_no = #{ordNo}
+	</delete>
+	
+	<delete id="deleteOrderDetail" parameterType="String">
+		delete from suorddtl where ord_no = #{ordNo}
+	</delete>
+	
+	<insert id="insertPaymentInfo" parameterType="paymentVO">
+		insert into pym(pym_no, ord_no, pym_dt, pym_mtd, pym_cmcd, pym_amt) values (#{pymNo},#{ordNo},#{pymDt},#{pymMtd},#{pymCmcd},#{pymAmt})
+	</insert>
+	
+	<select id="selectOrderInfo" parameterType="String" resultMap="orderMap">
+		select ord.ord_no, ord.stu_id, ord.ord_dt, ord.tol_amt, suorddtl.curs_no
+		from ord inner join suorddtl on (ord.ord_no = suorddtl.ord_no)
+		where ord.ord_no = #{ordNo}
+	</select>
+	
+	<insert id="insertSu" parameterType="orderVO">
+		<foreach collection="suOrdDtl" item="odv" index="index" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+			into su(curs_no, stu_id, su_cmcd, su_dt, ord_no)
+			values (
+				#{odv.cursNo},#{stuId},'SU01',#{ordDt},#{ordNo}
+			)
+		</foreach>
+	</insert>
+	
+	<update id="afterOrderCart" parameterType="orderVO">
+		<foreach collection="suOrdDtl" item="odv" separator=";" open="DECLARE BEGIN" close="; END;">
+			update cart set st_cmcd = 'Y'
+			<where>
+				curs_no=#{odv.cursNo} and stu_id = #{stuId}
+			</where>
+		</foreach>
+	</update>
+	
+	<select id="selectCompInfo" parameterType="map" resultMap="paymentMap">
+		select pym.pym_no, ord.ord_no, pym_dt, curs_no, curs_nm, pym_amt, cmcd_vu as pym_mtd
+		from pym inner join (select ord.ord_no, curs_no, stu_id, curs_nm
+                    		from ord left join (select ord_no, curs.curs_no, curs_nm
+                                        		from suorddtl inner join curs on (suorddtl.curs_no = curs.curs_no)) suorddtl on (ord.ord_no = suorddtl.ord_no)
+                    		where stu_id = #{stuId}
+                    		and ord.ord_no = #{ordNo}) ord on (pym.ord_no = ord.ord_no)
+        		inner join cmcd on (pym.pym_mtd = cmcd.cmcd_nm)
+	</select>
+	
+	<select id="studentPaymentHistory" parameterType="String" resultMap="paymentMap">
+		select pym.pym_no, pym.ord_no, pym_dt,curs_no, curs_nm, pym_amt, cmcd_vu as pym_mtd, curs_su_pri
+		from pym inner join (select ord.ord_no, curs_no, stu_id, curs_nm, curs_su_pri
+                    		from ord left join (select ord_no, curs.curs_no, curs_nm, curs.curs_su_pri 
+                                        		from suorddtl inner join curs on (suorddtl.curs_no = curs.curs_no)) suorddtl on (ord.ord_no = suorddtl.ord_no)
+                    		where stu_id = #{stuId} ) ord on (pym.ord_no = ord.ord_no)
+        		inner join cmcd on (pym.pym_mtd = cmcd.cmcd_nm)
+	</select>
+	
+	<select id="empPaymentHistory" resultMap="paymentMap">
+		select pym_no, pym.ord_no, stu_id, curs_nm, pym_dt, pym_amt, cmcd2.cmcd_vu as pym_mtd, cmcd1.cmcd_vu as pym_cmcd
+		from pym inner join (select ord.ord_no, curs_no, tol_amt, ord.stu_id, stu_nm, curs_nm
+                    		from ord inner join (select suorddtl.curs_no, curs_nm, ord_no
+                                        		from suorddtl inner join curs on (suorddtl.curs_no = curs.curs_no)) suorddtl on (ord.ord_no = suorddtl.ord_no)
+                            		 inner join stu on (stu.stu_id = ord.stu_id)) ord on (pym.ord_no = ord.ord_no)
+        		inner join cmcd cmcd1 on (pym.pym_cmcd = cmcd1.cmcd_nm)
+        		inner join cmcd cmcd2 on (pym.pym_mtd = cmcd2.cmcd_nm)
+	</select>
+</mapper>
